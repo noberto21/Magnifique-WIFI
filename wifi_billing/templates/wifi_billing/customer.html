@@ -1,0 +1,79 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Berto Wi-Fi | Choose a package</title>
+  <style>
+    :root { --blue:#2165f5; --ink:#17202b; --muted:#718096; --line:#e7edf4; --bg:#f7f9fc; }
+    * { box-sizing:border-box; } body { margin:0; color:var(--ink); background:var(--bg); font:15px/1.5 Inter,Segoe UI,Arial,sans-serif; }
+    .top { display:flex; justify-content:space-between; align-items:center; padding:20px 6%; background:#fff; border-bottom:1px solid var(--line); }
+    .brand { display:flex; align-items:center; gap:10px; color:var(--ink); font-size:19px; font-weight:800; text-decoration:none; }
+    .mark { display:grid; place-items:center; width:34px; height:34px; color:#fff; border-radius:10px; background:var(--blue); }
+    .top a:last-child { color:var(--blue); text-decoration:none; font-weight:700; }
+    main { max-width:1120px; margin:0 auto; padding:56px 20px 70px; } .hero { max-width:680px; margin:0 auto 38px; text-align:center; }
+    h1 { margin:0 0 10px; font-size:clamp(30px,5vw,46px); line-height:1.1; } .hero p { margin:0; color:var(--muted); font-size:17px; }
+    .packages { display:grid; grid-template-columns:repeat(auto-fit,minmax(240px,1fr)); gap:18px; }
+    .package { position:relative; display:flex; flex-direction:column; padding:25px; background:#fff; border:1px solid var(--line); border-radius:16px; box-shadow:0 8px 24px #1b335c0a; }
+    .package.featured { border:2px solid var(--blue); transform:translateY(-5px); } .tag { position:absolute; top:-13px; right:18px; padding:4px 10px; color:#fff; border-radius:20px; background:var(--blue); font-size:11px; font-weight:800; }
+    .package h2 { margin:0; font-size:21px; } .desc { min-height:48px; color:var(--muted); } .price { margin:16px 0 18px; color:var(--blue); font-size:31px; font-weight:800; }
+    .price small { color:var(--muted); font-size:13px; font-weight:500; } ul { flex:1; margin:0 0 22px; padding:0; list-style:none; color:#526070; } li { margin:9px 0; } li::before { margin-right:8px; color:#15a36d; content:'✓'; font-weight:800; }
+    button { width:100%; padding:12px; cursor:pointer; border:0; border-radius:9px; color:#fff; background:var(--blue); font:inherit; font-weight:800; } button:hover { filter:brightness(.94); }
+    .checkout { display:none; max-width:560px; margin:45px auto 0; padding:28px; background:#fff; border:1px solid var(--line); border-radius:16px; box-shadow:0 8px 24px #1b335c0a; } .checkout.visible { display:block; }
+    .checkout h2 { margin:0 0 6px; } .selected { color:var(--blue); font-weight:800; } label { display:block; margin-top:15px; color:#526070; font-weight:700; } input { width:100%; margin-top:6px; padding:12px; border:1px solid #ccd6e2; border-radius:8px; font:inherit; } input:focus { outline:2px solid #bfd2ff; border-color:var(--blue); }
+    .pay { margin-top:20px; } .message { display:none; margin-top:15px; padding:12px; border-radius:8px; background:#edf8f3; color:#08794d; } .message.error { background:#fff0f0; color:#ae2c2c; }
+    footer { padding:24px; color:var(--muted); text-align:center; font-size:13px; }
+    @media (max-width:600px) { .top { padding:16px 20px; } .top a:last-child { display:none; } main { padding-top:38px; } .package.featured { transform:none; } }
+  </style>
+</head>
+<body>
+  <header class="top"><a class="brand" href="/"><span class="mark">⌁</span>Berto Wi-Fi</a><a href="/admin-dashboard/">Admin dashboard →</a></header>
+  <main>
+    <section class="hero"><h1>Get connected in minutes.</h1><p>Choose the internet package that works for you. Pay securely with M-Pesa and start browsing instantly.</p></section>
+    <section class="packages" id="packages"><p>Loading packages…</p></section>
+    <section class="checkout" id="checkout">
+      <h2>Complete your purchase</h2><p>You selected <span class="selected" id="selected-package">a package</span>.</p>
+      <form id="payment-form">
+        <label for="username">Your username<input id="username" name="username" required placeholder="e.g. jane"></label>
+        <label for="phone">M-Pesa phone number<input id="phone" name="phone_number" required placeholder="07XXXXXXXX" inputmode="tel"></label>
+        <button class="pay" type="submit">Pay <span id="selected-price"></span> with M-Pesa</button>
+        <div class="message" id="message" role="status"></div>
+      </form>
+    </section>
+  </main>
+  <footer>Need help? Call +254 700 000 000 · By continuing, you accept our terms and conditions.</footer>
+  <script>
+    let selected;
+    const packageList = document.querySelector('#packages');
+    const checkout = document.querySelector('#checkout');
+    const message = document.querySelector('#message');
+    function showMessage(text, error) { message.textContent = text; message.className = 'message' + (error ? ' error' : ''); message.style.display = 'block'; }
+    function choosePackage(pkg) {
+      selected = pkg; checkout.classList.add('visible');
+      document.querySelector('#selected-package').textContent = pkg.name;
+      document.querySelector('#selected-price').textContent = 'KES ' + Number(pkg.price).toLocaleString();
+      checkout.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    }
+    async function loadPackages() {
+      try {
+        const response = await fetch('/api/packages/');
+        if (!response.ok) throw new Error('Unable to load packages');
+        const data = await response.json();
+        packageList.innerHTML = data.results.map((pkg, index) => '<article class="package '+(index === 1 ? 'featured' : '')+'">'+(index === 1 ? '<span class="tag">POPULAR</span>' : '')+'<h2>'+pkg.name+'</h2><p class="desc">'+(pkg.description || 'Reliable internet access')+'</p><div class="price">KES '+Number(pkg.price).toLocaleString()+' <small>/ package</small></div><ul><li>'+pkg.duration_hours+' hours access</li><li>'+pkg.download_speed_mbps+' Mbps download</li><li>'+pkg.devices_allowed+' device'+(pkg.devices_allowed === 1 ? '' : 's')+' allowed</li></ul><button type="button" data-id="'+pkg.id+'">Choose package</button></article>').join('') || '<p>No packages are available right now.</p>';
+        packageList.querySelectorAll('button').forEach((button, index) => button.addEventListener('click', () => choosePackage(data.results[index])));
+      } catch (error) { packageList.innerHTML = '<p>Packages are temporarily unavailable. Please try again shortly.</p>'; }
+    }
+    document.querySelector('#payment-form').addEventListener('submit', async (event) => {
+      event.preventDefault(); if (!selected) return;
+      const form = new FormData(event.currentTarget);
+      try {
+        const response = await fetch('/api/payment/initiate/', { method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({ username:form.get('username'), phone_number:form.get('phone_number'), package_id:selected.id, amount:selected.price }) });
+        const data = await response.json(); if (!response.ok) throw new Error(data.detail || 'Payment could not be started');
+        showMessage('STK Push sent. Check your phone and enter your M-Pesa PIN to complete payment.');
+        event.currentTarget.querySelector('button').disabled = true;
+      } catch (error) { showMessage(error.message, true); }
+    });
+    loadPackages();
+  </script>
+</body>
+</html>

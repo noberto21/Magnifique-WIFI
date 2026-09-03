@@ -1,0 +1,91 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Berto Wi-Fi | Network dashboard</title>
+  <style>
+    :root { --ink:#17202b; --muted:#718096; --line:#e8edf2; --blue:#2165f5; --green:#15a36d; --bg:#f6f8fb; }
+    * { box-sizing:border-box; } body { margin:0; color:var(--ink); background:var(--bg); font:14px/1.5 Inter,Segoe UI,Arial,sans-serif; }
+    .shell { display:flex; min-height:100vh; } aside { width:248px; padding:28px 18px; background:#fff; border-right:1px solid var(--line); }
+    .brand { display:flex; gap:10px; align-items:center; padding:0 12px 32px; font-size:18px; font-weight:800; }
+    .brand-mark { display:grid; place-items:center; width:34px; height:34px; color:#fff; border-radius:10px; background:var(--blue); font-size:18px; }
+    nav a { display:flex; gap:12px; align-items:center; padding:12px 14px; margin:4px 0; border-radius:9px; color:#647180; text-decoration:none; }
+    nav a.active, nav a:hover { color:var(--blue); background:#edf3ff; font-weight:700; } nav small { display:block; margin:26px 14px 8px; color:#a0a9b5; font-weight:700; text-transform:uppercase; letter-spacing:.08em; }
+    main { flex:1; min-width:0; padding:28px 4%; } header { display:flex; justify-content:space-between; align-items:center; gap:20px; margin-bottom:28px; }
+    h1 { margin:0; font-size:25px; } .sub { color:var(--muted); margin:3px 0 0; } .user { display:flex; align-items:center; gap:10px; }
+    .avatar { display:grid; place-items:center; width:38px; height:38px; color:#fff; border-radius:50%; background:#f29b4b; font-weight:800; }
+    .grid { display:grid; grid-template-columns:repeat(4,minmax(150px,1fr)); gap:16px; } .card { padding:20px; background:#fff; border:1px solid var(--line); border-radius:12px; box-shadow:0 3px 12px #182b4007; }
+    .metric-label { color:var(--muted); } .metric { display:flex; justify-content:space-between; align-items:end; margin-top:12px; font-size:26px; font-weight:800; } .trend { color:var(--green); font-size:12px; font-weight:700; }
+    .layout { display:grid; grid-template-columns:1.4fr 1fr; gap:16px; margin-top:16px; } .card h2 { margin:0 0 18px; font-size:16px; }
+    .bars { display:flex; align-items:end; gap:12px; height:180px; padding-top:15px; border-bottom:1px solid var(--line); }
+    .bar-wrap { display:flex; flex:1; flex-direction:column; align-items:center; gap:8px; height:100%; justify-content:end; color:var(--muted); font-size:11px; }
+    .bar { width:100%; max-width:34px; min-height:8px; border-radius:5px 5px 0 0; background:linear-gradient(#5b8bff,var(--blue)); } .rows { display:grid; gap:13px; }
+    .row { display:flex; align-items:center; gap:10px; } .row strong { margin-left:auto; } .pill { padding:4px 9px; color:var(--green); border-radius:20px; background:#e9f8f2; font-size:11px; font-weight:700; }
+    .quick { display:flex; flex-wrap:wrap; gap:10px; } button { cursor:pointer; border:0; border-radius:8px; padding:10px 14px; color:#fff; background:var(--blue); font-weight:700; } button.secondary { color:var(--blue); background:#edf3ff; }
+    .notice { display:none; position:fixed; right:22px; bottom:22px; padding:14px 18px; color:#fff; border-radius:9px; background:#17202b; box-shadow:0 8px 24px #0003; }
+    @media (max-width:900px) { aside { width:76px; padding:20px 10px; } .brand { padding:0 10px 24px; } .brand span, nav a span, nav small { display:none; } nav a { justify-content:center; } main { padding:22px; } .grid { grid-template-columns:repeat(2,1fr); } .layout { grid-template-columns:1fr; } }
+    @media (max-width:560px) { header { align-items:flex-start; } .user div:not(.avatar) { display:none; } main { padding:18px 12px; } .grid { gap:10px; } .card { padding:15px; } .metric { font-size:21px; } }
+  </style>
+</head>
+<body>
+  <div class="shell">
+    <aside>
+      <div class="brand"><div class="brand-mark">⌁</div><span>Berto Wi-Fi</span></div>
+      <nav>
+        <a class="active" href="/admin-dashboard/"><b>⌂</b><span>Dashboard</span></a>
+        <small>Management</small>
+        <a href="#customers"><b>♙</b><span>Customers</span></a>
+        <a href="#packages"><b>◈</b><span>Packages</span></a>
+        <a href="#subscriptions"><b>◷</b><span>Subscriptions</span></a>
+        <a href="#payments"><b>▣</b><span>Payments</span></a>
+        <a href="#vouchers"><b>◇</b><span>Vouchers</span></a>
+        <small>System</small>
+        <a href="#routers"><b>⌁</b><span>Routers</span></a>
+        <a href="#settings"><b>⚙</b><span>Settings</span></a>
+      </nav>
+    </aside>
+    <main>
+      <header>
+        <div><h1>Good morning, Admin</h1><p class="sub">Here’s what’s happening with your network today.</p></div>
+        <div class="user"><div><strong>System Administrator</strong><br><span class="sub">Super Admin</span></div><div class="avatar">SA</div></div>
+      </header>
+      <section class="grid">
+        <div class="card"><div class="metric-label">Total customers</div><div class="metric"><span id="customers">—</span><span class="trend">↑ 12.5%</span></div></div>
+        <div class="card"><div class="metric-label">Active subscriptions</div><div class="metric"><span id="subscriptions">—</span><span class="trend">↑ 8.2%</span></div></div>
+        <div class="card"><div class="metric-label">Today’s revenue</div><div class="metric"><span id="today-revenue">KES —</span><span class="trend">↑ 14.8%</span></div></div>
+        <div class="card"><div class="metric-label">Connected users</div><div class="metric"><span id="connected">—</span><span class="pill">Live</span></div></div>
+      </section>
+      <section class="layout">
+        <div class="card"><h2>Revenue overview <span class="sub">/ last 7 days</span></h2><div class="bars">
+          <div class="bar-wrap"><i class="bar" style="height:42%"></i>Mon</div><div class="bar-wrap"><i class="bar" style="height:64%"></i>Tue</div><div class="bar-wrap"><i class="bar" style="height:51%"></i>Wed</div><div class="bar-wrap"><i class="bar" style="height:82%"></i>Thu</div><div class="bar-wrap"><i class="bar" style="height:68%"></i>Fri</div><div class="bar-wrap"><i class="bar" style="height:94%"></i>Sat</div><div class="bar-wrap"><i class="bar" style="height:76%"></i>Sun</div>
+        </div></div>
+        <div class="card"><h2>Package popularity</h2><div class="rows" id="package-list"><div class="row"><span>Loading packages…</span></div></div></div>
+      </section>
+      <section class="layout">
+        <div class="card"><h2>Network status</h2><div class="rows"><div class="row"><span class="pill">● Online</span><span>Main Router</span><strong>192.168.88.1</strong></div><div class="row"><span class="pill">● Online</span><span>Hotspot service</span><strong>Healthy</strong></div><div class="row"><span>○</span><span>Payment gateway</span><strong>Sandbox</strong></div></div></div>
+        <div class="card"><h2>Quick actions</h2><div class="quick"><button onclick="location.hash='customers'">Add customer</button><button class="secondary" onclick="location.hash='packages'">Create package</button><button class="secondary" onclick="location.hash='vouchers'">Generate vouchers</button></div></div>
+      </section>
+    </main>
+  </div>
+  <div class="notice" id="notice">Dashboard updated</div>
+  <script>
+    async function loadDashboard() {
+      try {
+        const [dashboard, packages] = await Promise.all([fetch('/api/dashboard/'), fetch('/api/packages/')]);
+        if (!dashboard.ok || !packages.ok) throw new Error('API unavailable');
+        const d = await dashboard.json(), p = await packages.json();
+        document.querySelector('#customers').textContent = d.total_customers;
+        document.querySelector('#subscriptions').textContent = d.active_subscriptions;
+        document.querySelector('#today-revenue').textContent = 'KES ' + Number(d.today_revenue).toLocaleString();
+        document.querySelector('#connected').textContent = d.connected_users ?? '—';
+        const list = document.querySelector('#package-list');
+        list.innerHTML = p.results.slice(0, 4).map((item, i) => '<div class="row"><span>'+item.name+'</span><strong>'+(d.package_popularity?.[i]?.sold ?? 0)+'</strong></div>').join('') || '<div class="row"><span>No packages yet</span></div>';
+      } catch (error) {
+        document.querySelector('#package-list').innerHTML = '<div class="row"><span>API is not available yet</span></div>';
+      }
+    }
+    loadDashboard();
+  </script>
+</body>
+</html>

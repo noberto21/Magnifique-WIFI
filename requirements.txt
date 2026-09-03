@@ -1,0 +1,2 @@
+Django>=6.1.1
+# Optional production dependencies can be added here for DRF, JWT, PostgreSQL, and the MikroTik client.
