@@ -67,7 +67,7 @@ def _serialize_subscription(subscription):
 
 def api_home(request):
     return JsonResponse({
-        'app': 'Berto_satelite Wi-Fi Billing & Hotspot Management System',
+        'app': 'Magnifique WiFi Billing & Hotspot Management System',
         'version': '1.0.0',
         'status': 'ok',
     })
@@ -250,8 +250,8 @@ def api_mpesa_callback(request):
 @require_http_methods(['GET'])
 def captive_portal(request):
     return JsonResponse({
-        'business_name': 'Berto Wi-Fi',
-        'logo': '/static/logo.svg',
+        'business_name': 'Magnifique WiFi',
+        'logo': '/static/wifi_billing/magnifique-wifi-logo.png',
         'customer_support': '+254700000000',
         'terms_and_conditions': 'Use of this network constitutes acceptance of the applicable terms and conditions.',
         'packages': [_serialize_package(pkg) for pkg in Package.objects.filter(status=Package.STATUS_ACTIVE)],
