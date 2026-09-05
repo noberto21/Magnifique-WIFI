@@ -10,6 +10,7 @@ For the full list of settings and their values, see
 https://docs.djangoproject.com/en/6.1/ref/settings/
 """
 
+import os
 from pathlib import Path
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
@@ -25,7 +26,29 @@ SECRET_KEY = 'django-insecure-7au-13uv6na1mkv(agst2h$pp%a2_r(%*&+h)gcxxzq)373$uq
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = ['192.168.18.7', '127.0.0.1', 'testserver']
+ALLOWED_HOSTS = [
+    host.strip()
+    for host in os.getenv(
+        'ALLOWED_HOSTS',
+        '192.168.18.7,127.0.0.1,testserver',
+    ).split(',')
+    if host.strip()
+]
+
+# Allow the dashboard login when a reverse proxy preserves the browser's
+# origin but forwards the request with a different Host header.
+CSRF_TRUSTED_ORIGINS = [
+    origin.strip()
+    for origin in os.getenv(
+        'CSRF_TRUSTED_ORIGINS',
+        ','.join(
+            f'{scheme}://{host}'
+            for scheme in ('http', 'https')
+            for host in ALLOWED_HOSTS
+        ),
+    ).split(',')
+    if origin.strip()
+]
 
 
 # Application definition
