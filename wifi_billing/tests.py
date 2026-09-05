@@ -71,6 +71,48 @@ class WifiBillingApiTests(TestCase):
         self.assertEqual(response.status_code, 200)
         self.assertContains(response, 'Revenue overview')
 
+    def test_admin_login_accepts_configured_browser_origin(self):
+        User.objects.create_user(
+            username='staff',
+            password='securepass123',
+            is_staff=True,
+        )
+        client = self.client_class(enforce_csrf_checks=True)
+        login_page = client.get('/admin-dashboard/login/')
+        csrf_token = login_page.cookies['csrftoken'].value
+
+        response = client.post(
+            '/admin-dashboard/login/',
+            {
+                'username': 'staff',
+                'password': 'securepass123',
+                'csrfmiddlewaretoken': csrf_token,
+            },
+            HTTP_HOST='testserver',
+            HTTP_ORIGIN='http://192.168.18.7',
+        )
+
+        self.assertEqual(response.status_code, 302)
+        self.assertEqual(response.url, '/admin-dashboard/')
+
     def test_django_admin_remains_available(self):
         response = self.client.get('/admin/login/')
         self.assertEqual(response.status_code, 200)
+
+    def test_admin_dashboard_sections_have_staff_only_urls(self):
+        sections = ('customers', 'packages', 'subscriptions', 'payments', 'vouchers', 'routers', 'settings')
+        for section in sections:
+            response = self.client.get(f'/admin-dashboard/{section}/')
+            self.assertEqual(response.status_code, 302)
+            self.assertIn('/admin-dashboard/login/', response.url)
+
+        User.objects.create_user(
+            username='staff',
+            password='securepass123',
+            is_staff=True,
+        )
+        self.client.login(username='staff', password='securepass123')
+        for section in sections:
+            response = self.client.get(f'/admin-dashboard/{section}/')
+            self.assertEqual(response.status_code, 200)
+            self.assertContains(response, f'/admin-dashboard/{section}/')

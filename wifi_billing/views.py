@@ -86,6 +86,15 @@ def dashboard_page(request):
     return render(request, 'wifi_billing/dashboard.html')
 
 
+@staff_member_required(login_url='/admin-dashboard/login/')
+def dashboard_section(request, section):
+    return render(
+        request,
+        'wifi_billing/dashboard.html',
+        {'active_section': section},
+    )
+
+
 def customer_page(request):
     return render(request, 'wifi_billing/customer.html')
 
