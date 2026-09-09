@@ -143,6 +143,39 @@ class WifiBillingApiTests(TestCase):
         response = self.client.get('/admin-dashboard/')
         self.assertEqual(response.status_code, 200)
 
+    def test_admin_role_can_access_dashboard(self):
+        user = User.objects.create_user(
+            username='admin_role_user',
+            password='securepass123',
+            role=User.ROLE_ADMIN,
+        )
+        self.assertTrue(user.is_staff)
+        self.client.login(username='admin_role_user', password='securepass123')
+        response = self.client.get('/admin-dashboard/')
+        self.assertEqual(response.status_code, 200)
+
+    def test_customer_role_cannot_access_dashboard(self):
+        customer = User.objects.create_user(
+            username='regular_customer',
+            password='securepass123',
+            role=User.ROLE_CUSTOMER,
+        )
+        # Attempt to access dashboard directly while logged in as customer
+        self.client.login(username='regular_customer', password='securepass123')
+        response = self.client.get('/admin-dashboard/')
+        self.assertEqual(response.status_code, 302)
+        self.assertIn('/admin-dashboard/login/', response.url)
+
+        # Attempt to log in to the admin dashboard login page with customer credentials
+        self.client.logout()
+        login_resp = self.client.post('/admin-dashboard/login/', {
+            'username': 'regular_customer',
+            'password': 'securepass123',
+        })
+        self.assertEqual(login_resp.status_code, 200)
+        self.assertContains(login_resp, 'Access denied')
+
+
     def test_admin_dashboard_post_actions(self):
         User.objects.create_user(
             username='admin_worker',

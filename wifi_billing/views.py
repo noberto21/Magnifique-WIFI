@@ -19,12 +19,13 @@ from .services import MpesaService, RouterService
 
 
 def admin_required(view_func):
-    """Ensure user is logged in and is staff, superuser, or has an admin role."""
+    """Ensure user is logged in and role is strictly admin or super_admin."""
     @wraps(view_func)
     def _wrapped_view(request, *args, **kwargs):
         if not request.user.is_authenticated:
             return redirect(f'/admin-dashboard/login/?next={request.path}')
-        if not (request.user.is_staff or request.user.is_superuser or getattr(request.user, 'role', None) in (User.ROLE_SUPER_ADMIN, User.ROLE_ADMIN)):
+        if getattr(request.user, 'role', None) not in (User.ROLE_SUPER_ADMIN, User.ROLE_ADMIN):
+            messages.error(request, 'Access denied. The admin dashboard is restricted to Admin and Super Admin accounts only.')
             return redirect('/admin-dashboard/login/')
         return view_func(request, *args, **kwargs)
     return _wrapped_view
@@ -90,12 +91,28 @@ def api_home(request):
     })
 
 
+class AdminLoginView(LoginView):
+    template_name = 'wifi_billing/admin_login.html'
+    redirect_authenticated_user = False
+    next_page = '/admin-dashboard/'
+
+    def form_valid(self, form):
+        user = form.get_user()
+        if user.role not in (User.ROLE_SUPER_ADMIN, User.ROLE_ADMIN):
+            form.add_error(None, 'Access denied. The admin dashboard is restricted to Admin and Super Admin accounts only.')
+            return self.form_invalid(form)
+        return super().form_valid(form)
+
+
 def admin_login(request):
-    return LoginView.as_view(
-        template_name='wifi_billing/admin_login.html',
-        redirect_authenticated_user=True,
-        next_page='/admin-dashboard/',
-    )(request)
+    if request.user.is_authenticated:
+        if getattr(request.user, 'role', None) in (User.ROLE_SUPER_ADMIN, User.ROLE_ADMIN):
+            return redirect('/admin-dashboard/')
+        else:
+            logout(request)
+            messages.error(request, 'Access denied. The admin dashboard is restricted to Admin and Super Admin accounts only.')
+
+    return AdminLoginView.as_view()(request)
 
 
 def admin_logout(request):
