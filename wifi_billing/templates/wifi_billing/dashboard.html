@@ -1,4 +1,1561 @@
 {% load static %}
-<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Network dashboard | Magnifique WiFi</title><style>
-:root{--navy:#073b4c;--teal:#0b7a75;--ink:#092b35;--muted:#667d83;--line:#d9e8e6;--paper:#f4f9f8;--success:#15845f}*{box-sizing:border-box}body{margin:0;color:var(--ink);background:var(--paper);font:14px/1.5 Inter,Segoe UI,Arial,sans-serif}.shell{display:flex;min-height:100vh}aside{width:260px;padding:22px 14px;background:#fff;border-right:1px solid var(--line)}.brand{display:block;padding:0 10px 26px}.brand img{width:168px;height:58px;object-fit:contain;object-position:left}.nav-label{display:block;margin:22px 13px 8px;color:#91a4a8;font-size:11px;font-weight:800;letter-spacing:.1em;text-transform:uppercase}nav a{display:flex;align-items:center;gap:12px;margin:3px 0;padding:11px 13px;color:#557077;border-radius:9px;text-decoration:none;font-weight:700}nav a i{width:18px;color:var(--teal);font-style:normal;text-align:center}nav a.active,nav a:hover{color:var(--navy);background:#e7f6f3}main{flex:1;min-width:0;padding:30px clamp(20px,4vw,58px)}header{display:flex;justify-content:space-between;align-items:center;gap:20px;margin-bottom:28px}h1{margin:0;font-size:27px;letter-spacing:-.04em}.sub{margin:4px 0 0;color:var(--muted)}.user{display:flex;align-items:center;gap:10px;text-align:right}.avatar{display:grid;place-items:center;width:39px;height:39px;color:#fff;border-radius:50%;background:var(--navy);font-size:12px;font-weight:900}.metrics{display:grid;grid-template-columns:repeat(4,minmax(145px,1fr));gap:16px}.card{padding:20px;background:#fff;border:1px solid var(--line);border-radius:15px;box-shadow:0 5px 15px #073b4c08}.metric-label{color:var(--muted);font-weight:700}.metric{display:flex;align-items:end;justify-content:space-between;margin-top:9px;font-size:28px;font-weight:900;letter-spacing:-.05em}.trend,.pill{padding:3px 8px;border-radius:999px;color:var(--success);background:#e7f8f0;font-size:11px;font-weight:800;letter-spacing:0}.layout{display:grid;grid-template-columns:1.35fr 1fr;gap:16px;margin-top:16px}.card h2{margin:0 0 18px;font-size:16px}.chart-note{color:var(--muted);font-size:12px;font-weight:500}.bars{display:flex;align-items:end;gap:12px;height:185px;padding-top:15px;border-bottom:1px solid var(--line)}.bar-wrap{display:flex;flex:1;flex-direction:column;align-items:center;justify-content:end;gap:7px;height:100%;color:var(--muted);font-size:11px}.bar{width:100%;max-width:35px;min-height:9px;border-radius:5px 5px 0 0;background:linear-gradient(#2ac0ae,var(--teal))}.rows{display:grid;gap:13px}.row{display:flex;align-items:center;gap:10px;padding-bottom:11px;border-bottom:1px solid #edf3f2}.row:last-child{padding-bottom:0;border:0}.row strong{margin-left:auto}.status-dot{width:9px;height:9px;border-radius:50%;background:#3abd87;box-shadow:0 0 0 4px #3abd871b}.status-dot.warn{background:#f2a65a}.quick{display:flex;flex-wrap:wrap;gap:9px}.button{padding:10px 13px;cursor:pointer;border:0;border-radius:8px;color:#fff;background:var(--navy);font:inherit;font-weight:800}.button:hover{background:var(--teal)}.button.secondary{color:var(--navy);background:#e7f6f3}.notice{display:none;position:fixed;right:22px;bottom:22px;padding:14px 18px;color:#fff;border-radius:9px;background:var(--navy);box-shadow:0 8px 24px #0003}@media(max-width:900px){aside{width:76px;padding:20px 10px}.brand{padding:0 0 24px}.brand img{width:54px;object-position:left}.nav-label,nav a span{display:none}nav a{justify-content:center}.metrics{grid-template-columns:repeat(2,1fr)}.layout{grid-template-columns:1fr}}@media(max-width:560px){main{padding:22px 14px}.user>div:first-child{display:none}.metrics{gap:10px}.card{padding:15px}.metric{font-size:23px}}
-</style></head><body><div class="shell"><aside><a class="{% if not active_section %}active{% endif %}" href="{% url 'admin-dashboard' %}"><i>▦</i><span>Overview</span></a><span class="nav-label">Management</span><a class="{% if active_section == 'customers' %}active{% endif %}" href="{% url 'admin-dashboard-customers' %}"><i>♙</i><span>Customers</span></a><a class="{% if active_section == 'packages' %}active{% endif %}" href="{% url 'admin-dashboard-packages' %}"><i>◈</i><span>Packages</span></a><a class="{% if active_section == 'subscriptions' %}active{% endif %}" href="{% url 'admin-dashboard-subscriptions' %}"><i>◷</i><span>Subscriptions</span></a><a class="{% if active_section == 'payments' %}active{% endif %}" href="{% url 'admin-dashboard-payments' %}"><i>▤</i><span>Payments</span></a><a class="{% if active_section == 'vouchers' %}active{% endif %}" href="{% url 'admin-dashboard-vouchers' %}"><i>◇</i><span>Vouchers</span></a><span class="nav-label">System</span><a class="{% if active_section == 'routers' %}active{% endif %}" href="{% url 'admin-dashboard-routers' %}"><i>⌁</i><span>Routers</span></a><a class="{% if active_section == 'settings' %}active{% endif %}" href="{% url 'admin-dashboard-settings' %}"><i>⚙</i><span>Settings</span></a></nav></aside><main><header><div><h1>Network overview</h1><p class="sub">Here’s the latest from Magnifique WiFi.</p></div><div class="user"><div><strong>System Administrator</strong><br><span class="sub">Super Admin</span></div><div class="avatar">SA</div></div></header><section class="metrics"><div class="card"><div class="metric-label">Total customers</div><div class="metric"><span id="customers">—</span><span class="trend">+12.5%</span></div></div><div class="card"><div class="metric-label">Active subscriptions</div><div class="metric"><span id="subscriptions">—</span><span class="trend">+8.2%</span></div></div><div class="card"><div class="metric-label">Today’s revenue</div><div class="metric"><span id="today-revenue">KES —</span><span class="trend">+14.8%</span></div></div><div class="card"><div class="metric-label">Connected users</div><div class="metric"><span id="connected">—</span><span class="pill">Live</span></div></div></section><section class="layout"><div class="card"><h2>Revenue overview <span class="chart-note">/ last 7 days</span></h2><div class="bars"><div class="bar-wrap"><i class="bar" style="height:42%"></i>Mon</div><div class="bar-wrap"><i class="bar" style="height:64%"></i>Tue</div><div class="bar-wrap"><i class="bar" style="height:51%"></i>Wed</div><div class="bar-wrap"><i class="bar" style="height:82%"></i>Thu</div><div class="bar-wrap"><i class="bar" style="height:68%"></i>Fri</div><div class="bar-wrap"><i class="bar" style="height:94%"></i>Sat</div><div class="bar-wrap"><i class="bar" style="height:76%"></i>Sun</div></div></div><div class="card"><h2>Package popularity</h2><div class="rows" id="package-list"><div class="row"><span>Loading packages…</span></div></div></div></section><section class="layout"><div class="card"><h2>Network status</h2><div class="rows"><div class="row"><i class="status-dot"></i><span>Main router</span><strong>192.168.88.1</strong></div><div class="row"><i class="status-dot"></i><span>Hotspot service</span><strong>Healthy</strong></div><div class="row"><i class="status-dot warn"></i><span>Payment gateway</span><strong>Sandbox</strong></div></div></div><div class="card"><h2>Quick actions</h2><div class="quick"><button class="button" onclick="location.hash='customers'">Add customer</button><button class="button secondary" onclick="location.hash='packages'">Create package</button><button class="button secondary" onclick="location.hash='vouchers'">Generate vouchers</button></div></div></section></main></div><script>async function loadDashboard(){try{const[dashboard,packages]=await Promise.all([fetch('/api/dashboard/'),fetch('/api/packages/')]);if(!dashboard.ok||!packages.ok)throw new Error('API unavailable');const d=await dashboard.json(),p=await packages.json();document.querySelector('#customers').textContent=d.total_customers;document.querySelector('#subscriptions').textContent=d.active_subscriptions;document.querySelector('#today-revenue').textContent='KES '+Number(d.today_revenue).toLocaleString();document.querySelector('#connected').textContent=d.active_customers??'—';const list=document.querySelector('#package-list');list.innerHTML=p.results.slice(0,4).map((item,i)=>'<div class="row"><span>'+item.name+'</span><strong>'+(d.package_popularity?.[i]?.sold??0)+' sold</strong></div>').join('')||'<div class="row"><span>No packages yet</span></div>'}catch(error){document.querySelector('#package-list').innerHTML='<div class="row"><span>API is not available yet</span></div>'}}loadDashboard();</script></body></html>
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Admin Dashboard | Magnifique WiFi</title>
+  <style>
+    :root {
+      --navy: #073b4c;
+      --navy-dark: #052a37;
+      --teal: #0b7a75;
+      --teal-light: #e7f6f3;
+      --teal-hover: #08615d;
+      --orange: #f4a261;
+      --ink: #092b35;
+      --muted: #647d84;
+      --line: #d8e7e5;
+      --card-bg: #ffffff;
+      --paper: #f4f9f8;
+      --success: #15845f;
+      --success-bg: #e6f7ef;
+      --danger: #d9383a;
+      --danger-bg: #fdeeee;
+      --warning: #e76f51;
+      --warning-bg: #fef2ee;
+      --shadow-sm: 0 2px 8px rgba(7, 59, 76, 0.05);
+      --shadow-md: 0 8px 24px rgba(7, 59, 76, 0.08);
+      --radius: 12px;
+    }
+
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      color: var(--ink);
+      background: var(--paper);
+      font-family: Inter, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      font-size: 14px;
+      line-height: 1.5;
+    }
+
+    /* Layout Shell */
+    .shell {
+      display: flex;
+      min-height: 100vh;
+    }
+
+    /* Sidebar */
+    aside {
+      width: 260px;
+      background: #ffffff;
+      border-right: 1px solid var(--line);
+      display: flex;
+      flex-direction: column;
+      flex-shrink: 0;
+    }
+    .brand-wrap {
+      padding: 24px 20px 18px;
+      border-bottom: 1px solid var(--line);
+    }
+    .brand {
+      display: flex;
+      align-items: center;
+      text-decoration: none;
+    }
+    .brand img {
+      max-width: 170px;
+      height: 48px;
+      object-fit: contain;
+      object-position: left;
+    }
+    nav {
+      flex: 1;
+      padding: 16px 12px;
+      overflow-y: auto;
+    }
+    .nav-label {
+      display: block;
+      margin: 18px 12px 6px;
+      color: #94a7ac;
+      font-size: 11px;
+      font-weight: 800;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+    }
+    nav a {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 10px 14px;
+      margin: 2px 0;
+      color: #557077;
+      border-radius: 9px;
+      text-decoration: none;
+      font-weight: 600;
+      font-size: 13.5px;
+      transition: all 0.15s ease;
+    }
+    nav a i {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      width: 20px;
+      height: 20px;
+      font-style: normal;
+      font-size: 15px;
+      color: var(--teal);
+    }
+    nav a:hover {
+      color: var(--navy);
+      background: var(--teal-light);
+    }
+    nav a.active {
+      color: var(--navy);
+      background: var(--teal-light);
+      font-weight: 800;
+      box-shadow: inset 3px 0 0 var(--teal);
+    }
+    .nav-footer {
+      padding: 16px;
+      border-top: 1px solid var(--line);
+      background: #fafcfc;
+    }
+    .nav-footer a {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 8px 10px;
+      color: var(--muted);
+      text-decoration: none;
+      font-size: 12.5px;
+      font-weight: 600;
+      border-radius: 6px;
+    }
+    .nav-footer a:hover {
+      color: var(--navy);
+      background: #eef6f5;
+    }
+    .nav-footer a.logout {
+      color: var(--danger);
+    }
+    .nav-footer a.logout:hover {
+      background: var(--danger-bg);
+    }
+
+    /* Main Area */
+    main {
+      flex: 1;
+      min-width: 0;
+      padding: 30px clamp(20px, 3.5vw, 48px);
+      overflow-y: auto;
+    }
+
+    /* Header */
+    header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 20px;
+      margin-bottom: 26px;
+      flex-wrap: wrap;
+    }
+    .page-title h1 {
+      margin: 0;
+      font-size: 26px;
+      font-weight: 800;
+      letter-spacing: -0.03em;
+      color: var(--navy);
+    }
+    .page-title p {
+      margin: 4px 0 0;
+      color: var(--muted);
+      font-size: 14px;
+    }
+    .user-pill {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      background: #ffffff;
+      padding: 8px 14px;
+      border-radius: 40px;
+      border: 1px solid var(--line);
+      box-shadow: var(--shadow-sm);
+    }
+    .avatar {
+      display: grid;
+      place-items: center;
+      width: 38px;
+      height: 38px;
+      border-radius: 50%;
+      background: var(--navy);
+      color: #ffffff;
+      font-weight: 800;
+      font-size: 13px;
+    }
+    .user-info {
+      text-align: right;
+    }
+    .user-name {
+      font-weight: 700;
+      font-size: 13.5px;
+      color: var(--navy);
+    }
+    .user-role {
+      font-size: 11px;
+      color: var(--teal);
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+    }
+    .user-logout-btn {
+      color: var(--muted);
+      text-decoration: none;
+      padding: 6px 10px;
+      border-radius: 6px;
+      font-weight: 700;
+      font-size: 12px;
+      border: 1px solid var(--line);
+      transition: all 0.15s;
+    }
+    .user-logout-btn:hover {
+      color: var(--danger);
+      background: var(--danger-bg);
+      border-color: #f7cccc;
+    }
+
+    /* Messages & Alerts */
+    .alerts {
+      margin-bottom: 22px;
+    }
+    .alert {
+      padding: 13px 18px;
+      border-radius: 10px;
+      font-weight: 600;
+      font-size: 13.5px;
+      margin-bottom: 10px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+    .alert.success {
+      background: var(--success-bg);
+      color: var(--success);
+      border: 1px solid #b7ecd3;
+    }
+    .alert.error {
+      background: var(--danger-bg);
+      color: var(--danger);
+      border: 1px solid #f9c7c7;
+    }
+
+    /* KPI Cards */
+    .metrics {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(210px, 1fr));
+      gap: 16px;
+      margin-bottom: 24px;
+    }
+    .metric-card {
+      background: #ffffff;
+      padding: 20px 22px;
+      border-radius: var(--radius);
+      border: 1px solid var(--line);
+      box-shadow: var(--shadow-sm);
+    }
+    .metric-label {
+      color: var(--muted);
+      font-size: 12.5px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+    }
+    .metric-value {
+      display: flex;
+      align-items: baseline;
+      justify-content: space-between;
+      margin-top: 8px;
+      font-size: 27px;
+      font-weight: 800;
+      letter-spacing: -0.04em;
+      color: var(--navy);
+    }
+    .badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      padding: 3px 9px;
+      border-radius: 999px;
+      font-size: 11px;
+      font-weight: 700;
+    }
+    .badge-success { background: var(--success-bg); color: var(--success); }
+    .badge-warning { background: var(--warning-bg); color: var(--warning); }
+    .badge-danger { background: var(--danger-bg); color: var(--danger); }
+    .badge-info { background: var(--teal-light); color: var(--teal); }
+    .badge-neutral { background: #eef2f3; color: var(--muted); }
+
+    /* Action bar */
+    .action-bar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 14px;
+      margin-bottom: 20px;
+      flex-wrap: wrap;
+    }
+    .search-form {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      flex: 1;
+      max-width: 460px;
+    }
+    .search-input {
+      width: 100%;
+      padding: 10px 14px;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background: #ffffff;
+      font: inherit;
+      font-size: 13.5px;
+      outline: none;
+    }
+    .search-input:focus {
+      border-color: var(--teal);
+      box-shadow: 0 0 0 3px rgba(11, 122, 117, 0.15);
+    }
+    .filter-group {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      flex-wrap: wrap;
+    }
+    .filter-chip {
+      padding: 7px 14px;
+      border-radius: 8px;
+      background: #ffffff;
+      border: 1px solid var(--line);
+      color: var(--muted);
+      text-decoration: none;
+      font-weight: 600;
+      font-size: 12.5px;
+      transition: all 0.15s;
+    }
+    .filter-chip:hover {
+      border-color: var(--teal);
+      color: var(--teal);
+    }
+    .filter-chip.active {
+      background: var(--navy);
+      color: #ffffff;
+      border-color: var(--navy);
+    }
+
+    /* Buttons */
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 10px 16px;
+      border: 0;
+      border-radius: 8px;
+      font: inherit;
+      font-size: 13px;
+      font-weight: 700;
+      cursor: pointer;
+      text-decoration: none;
+      transition: all 0.15s ease;
+    }
+    .btn-primary {
+      background: var(--navy);
+      color: #ffffff;
+    }
+    .btn-primary:hover {
+      background: var(--teal);
+    }
+    .btn-teal {
+      background: var(--teal);
+      color: #ffffff;
+    }
+    .btn-teal:hover {
+      background: var(--teal-hover);
+    }
+    .btn-secondary {
+      background: var(--teal-light);
+      color: var(--navy);
+    }
+    .btn-secondary:hover {
+      background: #d8f0eb;
+    }
+    .btn-outline {
+      background: #ffffff;
+      color: var(--ink);
+      border: 1px solid var(--line);
+    }
+    .btn-outline:hover {
+      border-color: var(--teal);
+      color: var(--teal);
+    }
+    .btn-sm {
+      padding: 6px 11px;
+      font-size: 12px;
+      border-radius: 6px;
+    }
+
+    /* Card Panels & Tables */
+    .panel {
+      background: #ffffff;
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow-sm);
+      overflow: hidden;
+      margin-bottom: 24px;
+    }
+    .panel-header {
+      padding: 18px 22px;
+      border-bottom: 1px solid var(--line);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 16px;
+    }
+    .panel-title {
+      margin: 0;
+      font-size: 16.5px;
+      font-weight: 800;
+      color: var(--navy);
+    }
+    .panel-body {
+      padding: 22px;
+    }
+
+    /* Data Tables */
+    .table-responsive {
+      width: 100%;
+      overflow-x: auto;
+    }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      text-align: left;
+      font-size: 13px;
+    }
+    thead th {
+      background: #f8fafb;
+      color: var(--muted);
+      font-size: 11.5px;
+      font-weight: 800;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      padding: 12px 18px;
+      border-bottom: 1px solid var(--line);
+      white-space: nowrap;
+    }
+    tbody tr {
+      border-bottom: 1px solid #edf3f2;
+      transition: background 0.1s;
+    }
+    tbody tr:last-child {
+      border-bottom: 0;
+    }
+    tbody tr:hover {
+      background: #f9fbfb;
+    }
+    tbody td {
+      padding: 14px 18px;
+      vertical-align: middle;
+      color: var(--ink);
+    }
+    .code-cell {
+      font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+      font-weight: 700;
+      background: #f2f7f6;
+      padding: 3px 7px;
+      border-radius: 5px;
+      font-size: 12px;
+      color: var(--navy);
+    }
+    .table-empty {
+      padding: 40px 20px;
+      text-align: center;
+      color: var(--muted);
+    }
+
+    /* Grid Layouts */
+    .grid-2 {
+      display: grid;
+      grid-template-columns: 1.4fr 1fr;
+      gap: 20px;
+      margin-bottom: 24px;
+    }
+    .grid-cards {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+      gap: 20px;
+      margin-bottom: 24px;
+    }
+
+    /* Package & Router Cards */
+    .plan-card {
+      background: #ffffff;
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      padding: 22px;
+      box-shadow: var(--shadow-sm);
+      display: flex;
+      flex-direction: column;
+      position: relative;
+    }
+    .plan-card.inactive {
+      opacity: 0.7;
+      background: #fbfdfd;
+    }
+    .plan-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      margin-bottom: 10px;
+    }
+    .plan-name {
+      font-size: 18px;
+      font-weight: 800;
+      color: var(--navy);
+      margin: 0;
+    }
+    .plan-price {
+      font-size: 26px;
+      font-weight: 900;
+      color: var(--navy);
+      margin: 10px 0 14px;
+    }
+    .plan-price span {
+      font-size: 12px;
+      color: var(--muted);
+      font-weight: 600;
+    }
+    .plan-specs {
+      list-style: none;
+      padding: 0;
+      margin: 0 0 20px;
+      font-size: 13px;
+      color: #4a676e;
+      flex: 1;
+    }
+    .plan-specs li {
+      margin-bottom: 8px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .plan-specs li::before {
+      content: "✓";
+      color: var(--teal);
+      font-weight: 900;
+    }
+    .plan-actions {
+      display: flex;
+      gap: 10px;
+      margin-top: auto;
+    }
+
+    /* Router Cards */
+    .router-card {
+      background: #ffffff;
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      padding: 20px;
+      box-shadow: var(--shadow-sm);
+    }
+    .router-card-top {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 14px;
+    }
+    .status-dot {
+      display: inline-block;
+      width: 10px;
+      height: 10px;
+      border-radius: 50%;
+      background: #20bf6b;
+      box-shadow: 0 0 0 4px rgba(32, 191, 107, 0.2);
+    }
+    .status-dot.disconnected {
+      background: var(--danger);
+      box-shadow: 0 0 0 4px rgba(217, 56, 58, 0.15);
+    }
+
+    /* Modals */
+    .modal-backdrop {
+      display: none;
+      position: fixed;
+      inset: 0;
+      background: rgba(7, 43, 53, 0.45);
+      backdrop-filter: blur(3px);
+      z-index: 999;
+      place-items: center;
+      padding: 20px;
+    }
+    .modal-backdrop.active {
+      display: grid;
+    }
+    .modal-box {
+      background: #ffffff;
+      border-radius: 16px;
+      width: min(100%, 540px);
+      padding: 28px;
+      box-shadow: var(--shadow-md);
+      position: relative;
+      max-height: 90vh;
+      overflow-y: auto;
+    }
+    .modal-close {
+      position: absolute;
+      top: 20px;
+      right: 20px;
+      border: 0;
+      background: transparent;
+      font-size: 20px;
+      cursor: pointer;
+      color: var(--muted);
+    }
+    .modal-title {
+      margin: 0 0 6px;
+      font-size: 20px;
+      font-weight: 800;
+      color: var(--navy);
+    }
+    .modal-desc {
+      margin: 0 0 20px;
+      color: var(--muted);
+      font-size: 13px;
+    }
+    .form-group {
+      margin-bottom: 16px;
+    }
+    .form-group label {
+      display: block;
+      margin-bottom: 6px;
+      font-weight: 700;
+      font-size: 12.5px;
+      color: var(--navy);
+    }
+    .form-control {
+      width: 100%;
+      padding: 10px 12px;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      font: inherit;
+      font-size: 13.5px;
+      outline: none;
+    }
+    .form-control:focus {
+      border-color: var(--teal);
+      box-shadow: 0 0 0 3px rgba(11, 122, 117, 0.12);
+    }
+    .form-row {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 12px;
+    }
+
+    /* Revenue Bar Chart (CSS) */
+    .bars {
+      display: flex;
+      align-items: flex-end;
+      gap: 12px;
+      height: 180px;
+      padding-top: 15px;
+      border-bottom: 1px solid var(--line);
+    }
+    .bar-wrap {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: flex-end;
+      gap: 6px;
+      height: 100%;
+      font-size: 11px;
+      color: var(--muted);
+    }
+    .bar {
+      width: 100%;
+      max-width: 32px;
+      min-height: 8px;
+      border-radius: 6px 6px 0 0;
+      background: linear-gradient(to top, var(--teal), #23b7a4);
+      transition: height 0.5s ease;
+    }
+
+    /* Responsive */
+    @media (max-width: 960px) {
+      aside {
+        width: 74px;
+      }
+      .brand-wrap {
+        padding: 16px 10px;
+      }
+      .brand img {
+        max-width: 48px;
+      }
+      .nav-label, nav a span, .nav-footer a span {
+        display: none;
+      }
+      nav a {
+        justify-content: center;
+        padding: 12px;
+      }
+      .grid-2 {
+        grid-template-columns: 1fr;
+      }
+    }
+    @media (max-width: 600px) {
+      main {
+        padding: 18px 14px;
+      }
+      .metrics {
+        grid-template-columns: 1fr 1fr;
+      }
+      .user-info {
+        display: none;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="shell">
+    <!-- Sidebar -->
+    <aside>
+      <div class="brand-wrap">
+        <a class="brand" href="{% url 'admin-dashboard' %}">
+          <img src="{% static 'wifi_billing/magnifique-wifi-logo.png' %}" alt="Magnifique WiFi">
+        </a>
+      </div>
+      <nav>
+        <a class="{% if active_section == 'overview' or not active_section %}active{% endif %}" href="{% url 'admin-dashboard' %}">
+          <i>▦</i><span>Overview</span>
+        </a>
+
+        <span class="nav-label">Management</span>
+        <a class="{% if active_section == 'customers' %}active{% endif %}" href="{% url 'admin-dashboard-customers' %}">
+          <i>♙</i><span>Customers</span>
+        </a>
+        <a class="{% if active_section == 'packages' %}active{% endif %}" href="{% url 'admin-dashboard-packages' %}">
+          <i>◈</i><span>Packages</span>
+        </a>
+        <a class="{% if active_section == 'subscriptions' %}active{% endif %}" href="{% url 'admin-dashboard-subscriptions' %}">
+          <i>◷</i><span>Subscriptions</span>
+        </a>
+        <a class="{% if active_section == 'payments' %}active{% endif %}" href="{% url 'admin-dashboard-payments' %}">
+          <i>▤</i><span>Payments</span>
+        </a>
+        <a class="{% if active_section == 'vouchers' %}active{% endif %}" href="{% url 'admin-dashboard-vouchers' %}">
+          <i>◇</i><span>Vouchers</span>
+        </a>
+
+        <span class="nav-label">System</span>
+        <a class="{% if active_section == 'routers' %}active{% endif %}" href="{% url 'admin-dashboard-routers' %}">
+          <i>⌁</i><span>Routers</span>
+        </a>
+        <a class="{% if active_section == 'settings' %}active{% endif %}" href="{% url 'admin-dashboard-settings' %}">
+          <i>⚙</i><span>Settings</span>
+        </a>
+      </nav>
+
+      <div class="nav-footer">
+        <a href="{% url 'home' %}" target="_blank">
+          <i>↗</i><span>Customer Portal</span>
+        </a>
+        <a href="/admin/" target="_blank">
+          <i>⚙</i><span>Django Admin</span>
+        </a>
+        <a class="logout" href="{% url 'admin-dashboard-logout' %}">
+          <i>↪</i><span>Log Out</span>
+        </a>
+      </div>
+    </aside>
+
+    <!-- Main Content -->
+    <main>
+      <!-- Top Header -->
+      <header>
+        <div class="page-title">
+          {% if active_section == 'customers' %}
+            <h1>Customers Management</h1>
+            <p>Manage, search, and monitor active customer accounts.</p>
+          {% elif active_section == 'packages' %}
+            <h1>Internet Packages</h1>
+            <p>Configure bandwidth, quotas, pricing, and package status.</p>
+          {% elif active_section == 'subscriptions' %}
+            <h1>Subscriber Plans</h1>
+            <p>Active and expiring subscriber accounts and package allocations.</p>
+          {% elif active_section == 'payments' %}
+            <h1>Billing & M-Pesa Payments</h1>
+            <p>Real-time payment records, STK push transactions, and receipts.</p>
+          {% elif active_section == 'vouchers' %}
+            <h1>Hotspot Vouchers</h1>
+            <p>Generate, monitor, and distribute prepaid hotspot vouchers.</p>
+          {% elif active_section == 'routers' %}
+            <h1>Routers & Network Nodes</h1>
+            <p>MikroTik router connections, status checks, and gateway health.</p>
+          {% elif active_section == 'settings' %}
+            <h1>System Settings</h1>
+            <p>Platform status, M-Pesa configurations, and administrator account.</p>
+          {% else %}
+            <h1>Network Overview</h1>
+            <p>Live health, revenue summary, and network performance.</p>
+          {% endif %}
+        </div>
+
+        <div class="user-pill">
+          <div class="avatar">{{ user.username|slice:":2"|upper|default:"AD" }}</div>
+          <div class="user-info">
+            <div class="user-name">{{ user.get_full_name|default:user.username }}</div>
+            <div class="user-role">{{ user.role|default:"Administrator" }}</div>
+          </div>
+          <a class="user-logout-btn" href="{% url 'admin-dashboard-logout' %}">Logout</a>
+        </div>
+      </header>
+
+      <!-- Feedback Alerts -->
+      {% if messages %}
+        <div class="alerts">
+          {% for message in messages %}
+            <div class="alert {{ message.tags|default:'info' }}">
+              <span>{{ message }}</span>
+              <span style="cursor:pointer;" onclick="this.parentElement.remove()">✕</span>
+            </div>
+          {% endfor %}
+        </div>
+      {% endif %}
+
+      <!-- Top Metric Cards -->
+      <section class="metrics">
+        <div class="metric-card">
+          <div class="metric-label">Total Customers</div>
+          <div class="metric-value">
+            <span>{{ metrics.total_customers }}</span>
+            <span class="badge badge-info">{{ metrics.active_customers }} active</span>
+          </div>
+        </div>
+        <div class="metric-card">
+          <div class="metric-label">Active Subscriptions</div>
+          <div class="metric-value">
+            <span>{{ metrics.active_subscriptions }}</span>
+            <span class="badge badge-success">Live</span>
+          </div>
+        </div>
+        <div class="metric-card">
+          <div class="metric-label">Revenue (Today / Total)</div>
+          <div class="metric-value">
+            <span style="font-size:22px;">KES {{ metrics.today_revenue|floatformat:0 }}</span>
+            <span class="badge badge-success">KES {{ metrics.all_time_revenue|floatformat:0 }}</span>
+          </div>
+        </div>
+        <div class="metric-card">
+          <div class="metric-label">Routers & Network</div>
+          <div class="metric-value">
+            <span>{{ metrics.online_routers }}/{{ metrics.total_routers }}</span>
+            <span class="badge {% if metrics.online_routers > 0 %}badge-success{% else %}badge-warning{% endif %}">
+              {% if metrics.online_routers > 0 %}Online{% else %}Standby{% endif %}
+            </span>
+          </div>
+        </div>
+      </section>
+
+      <!-- ================= SECTION: OVERVIEW ================= -->
+      {% if active_section == 'overview' or not active_section %}
+        <section class="grid-2">
+          <!-- Revenue Chart -->
+          <div class="panel">
+            <div class="panel-header">
+              <h2 class="panel-title">Revenue overview <span style="font-size:12px;color:var(--muted);font-weight:normal;">/ 7-day trend</span></h2>
+              <span class="badge badge-success">Live M-Pesa</span>
+            </div>
+            <div class="panel-body">
+              <div class="bars">
+                <div class="bar-wrap"><i class="bar" style="height:35%"></i>Mon</div>
+                <div class="bar-wrap"><i class="bar" style="height:55%"></i>Tue</div>
+                <div class="bar-wrap"><i class="bar" style="height:48%"></i>Wed</div>
+                <div class="bar-wrap"><i class="bar" style="height:70%"></i>Thu</div>
+                <div class="bar-wrap"><i class="bar" style="height:65%"></i>Fri</div>
+                <div class="bar-wrap"><i class="bar" style="height:90%"></i>Sat</div>
+                <div class="bar-wrap"><i class="bar" style="height:80%"></i>Sun</div>
+              </div>
+              <div style="display:flex;justify-content:space-between;margin-top:14px;color:var(--muted);font-size:12px;">
+                <span>Total Collected: <strong>KES {{ metrics.all_time_revenue }}</strong></span>
+                <span>Active Vouchers: <strong>{{ metrics.unused_vouchers }}</strong></span>
+              </div>
+            </div>
+          </div>
+
+          <!-- Quick Actions & Packages -->
+          <div class="panel">
+            <div class="panel-header">
+              <h2 class="panel-title">Quick Actions</h2>
+            </div>
+            <div class="panel-body">
+              <div style="display:grid;gap:10px;">
+                <button class="btn btn-primary" onclick="openModal('modal-customer')">
+                  <i>+</i> Add New Customer
+                </button>
+                <button class="btn btn-teal" onclick="openModal('modal-package')">
+                  <i>◈</i> Create Internet Package
+                </button>
+                <button class="btn btn-secondary" onclick="openModal('modal-voucher')">
+                  <i>◇</i> Generate Hotspot Vouchers
+                </button>
+                <button class="btn btn-outline" onclick="openModal('modal-router')">
+                  <i>⌁</i> Register MikroTik Router
+                </button>
+              </div>
+
+              <div style="margin-top:22px;">
+                <div class="metric-label" style="margin-bottom:10px;">Package Popularity</div>
+                {% for pkg in package_popularity %}
+                  <div style="display:flex;justify-content:space-between;align-items:center;padding:7px 0;border-bottom:1px solid #edf3f2;">
+                    <span><strong>{{ pkg.name }}</strong> (KES {{ pkg.price }})</span>
+                    <span class="badge badge-info">{{ pkg.sold }} subscribers</span>
+                  </div>
+                {% empty %}
+                  <p style="color:var(--muted);font-size:13px;margin:0;">No package subscriptions recorded yet.</p>
+                {% endfor %}
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <!-- Recent Payments Table -->
+        <div class="panel">
+          <div class="panel-header">
+            <h2 class="panel-title">Recent Transactions</h2>
+            <a class="btn btn-outline btn-sm" href="{% url 'admin-dashboard-payments' %}">View All Payments →</a>
+          </div>
+          <div class="table-responsive">
+            <table>
+              <thead>
+                <tr>
+                  <th>Receipt #</th>
+                  <th>Customer</th>
+                  <th>Package</th>
+                  <th>Amount</th>
+                  <th>Phone Number</th>
+                  <th>Status</th>
+                  <th>Date & Time</th>
+                </tr>
+              </thead>
+              <tbody>
+                {% for payment in recent_payments %}
+                  <tr>
+                    <td><span class="code-cell">{{ payment.receipt_number|default:"PENDING" }}</span></td>
+                    <td><strong>{{ payment.customer.get_full_name|default:payment.customer.username }}</strong></td>
+                    <td>{{ payment.package.name|default:"—" }}</td>
+                    <td><strong>KES {{ payment.amount }}</strong></td>
+                    <td>{{ payment.phone_number|default:"—" }}</td>
+                    <td>
+                      {% if payment.status == 'successful' %}
+                        <span class="badge badge-success">Successful</span>
+                      {% elif payment.status == 'pending' %}
+                        <span class="badge badge-warning">Pending</span>
+                      {% else %}
+                        <span class="badge badge-danger">{{ payment.status|title }}</span>
+                      {% endif %}
+                    </td>
+                    <td style="color:var(--muted);">{{ payment.created_at|date:"M d, Y H:i" }}</td>
+                  </tr>
+                {% empty %}
+                  <tr>
+                    <td colspan="7" class="table-empty">No payments recorded yet. Transactions will appear here automatically when customers pay with M-Pesa.</td>
+                  </tr>
+                {% endfor %}
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+      <!-- ================= SECTION: CUSTOMERS ================= -->
+      {% elif active_section == 'customers' %}
+        <div class="action-bar">
+          <form class="search-form" method="get">
+            <input class="search-input" name="q" value="{{ q }}" placeholder="Search customers by username, name, phone, email…">
+            <button class="btn btn-primary" type="submit">Search</button>
+            {% if q %}
+              <a class="btn btn-outline" href="{% url 'admin-dashboard-customers' %}">Clear</a>
+            {% endif %}
+          </form>
+
+          <div class="filter-group">
+            <a class="filter-chip {% if not status_filter %}active{% endif %}" href="{% url 'admin-dashboard-customers' %}">All</a>
+            <a class="filter-chip {% if status_filter == 'active' %}active{% endif %}" href="?status=active">Active</a>
+            <a class="filter-chip {% if status_filter == 'expired' %}active{% endif %}" href="?status=expired">Expired</a>
+            <a class="filter-chip {% if status_filter == 'new' %}active{% endif %}" href="?status=new">New</a>
+            <button class="btn btn-teal" onclick="openModal('modal-customer')">+ Add Customer</button>
+          </div>
+        </div>
+
+        <div class="panel">
+          <div class="table-responsive">
+            <table>
+              <thead>
+                <tr>
+                  <th>Username</th>
+                  <th>Full Name</th>
+                  <th>Phone</th>
+                  <th>Email</th>
+                  <th>Status</th>
+                  <th>Date Registered</th>
+                </tr>
+              </thead>
+              <tbody>
+                {% for customer in customers_list %}
+                  <tr>
+                    <td><strong>{{ customer.username }}</strong></td>
+                    <td>{{ customer.get_full_name|default:"—" }}</td>
+                    <td>{{ customer.phone_number|default:"—" }}</td>
+                    <td>{{ customer.email|default:"—" }}</td>
+                    <td>
+                      {% if customer.subscription_status == 'active' %}
+                        <span class="badge badge-success">Active</span>
+                      {% elif customer.subscription_status == 'expired' %}
+                        <span class="badge badge-danger">Expired</span>
+                      {% else %}
+                        <span class="badge badge-neutral">{{ customer.subscription_status|default:"New"|title }}</span>
+                      {% endif %}
+                    </td>
+                    <td style="color:var(--muted);">{{ customer.date_joined|date:"M d, Y" }}</td>
+                  </tr>
+                {% empty %}
+                  <tr>
+                    <td colspan="6" class="table-empty">No customers found. Click "+ Add Customer" to register a subscriber.</td>
+                  </tr>
+                {% endfor %}
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+      <!-- ================= SECTION: PACKAGES ================= -->
+      {% elif active_section == 'packages' %}
+        <div class="action-bar">
+          <div style="font-size:15px;color:var(--muted);">Total Available Plans: <strong>{{ packages_list|length }}</strong></div>
+          <button class="btn btn-teal" onclick="openModal('modal-package')">+ Create Package</button>
+        </div>
+
+        <div class="grid-cards">
+          {% for pkg in packages_list %}
+            <div class="plan-card {% if pkg.status != 'active' %}inactive{% endif %}">
+              <div class="plan-header">
+                <h3 class="plan-name">{{ pkg.name }}</h3>
+                <span class="badge {% if pkg.status == 'active' %}badge-success{% else %}badge-neutral{% endif %}">
+                  {{ pkg.status|title }}
+                </span>
+              </div>
+              <p style="margin:0 0 10px;color:var(--muted);font-size:13px;min-height:36px;">{{ pkg.description|default:"Fast and reliable WiFi connection" }}</p>
+              <div class="plan-price">
+                KES {{ pkg.price }} <span>/ {{ pkg.duration_hours }} hrs</span>
+              </div>
+              <ul class="plan-specs">
+                <li>{{ pkg.download_speed_mbps }} Mbps Download speed</li>
+                <li>{{ pkg.upload_speed_mbps }} Mbps Upload speed</li>
+                <li>{{ pkg.data_allowance_gb }} GB Data limit</li>
+                <li>{{ pkg.devices_allowed }} Device{{ pkg.devices_allowed|pluralize }} allowed</li>
+              </ul>
+              <div class="plan-actions">
+                <form method="post" style="width:100%;">
+                  {% csrf_token %}
+                  <input type="hidden" name="action" value="toggle_package">
+                  <input type="hidden" name="package_id" value="{{ pkg.id }}">
+                  <button class="btn btn-outline btn-sm" type="submit" style="width:100%;">
+                    {% if pkg.status == 'active' %}Deactivate{% else %}Activate{% endif %}
+                  </button>
+                </form>
+              </div>
+            </div>
+          {% empty %}
+            <div class="panel" style="grid-column: 1 / -1;">
+              <div class="table-empty">No packages found. Click "+ Create Package" to add your first billing plan.</div>
+            </div>
+          {% endfor %}
+        </div>
+
+      <!-- ================= SECTION: SUBSCRIPTIONS ================= -->
+      {% elif active_section == 'subscriptions' %}
+        <div class="action-bar">
+          <form class="search-form" method="get">
+            <input class="search-input" name="q" value="{{ q }}" placeholder="Search by customer or package…">
+            <button class="btn btn-primary" type="submit">Search</button>
+            {% if q %}
+              <a class="btn btn-outline" href="{% url 'admin-dashboard-subscriptions' %}">Clear</a>
+            {% endif %}
+          </form>
+
+          <div class="filter-group">
+            <a class="filter-chip {% if not status_filter %}active{% endif %}" href="{% url 'admin-dashboard-subscriptions' %}">All</a>
+            <a class="filter-chip {% if status_filter == 'active' %}active{% endif %}" href="?status=active">Active</a>
+            <a class="filter-chip {% if status_filter == 'expired' %}active{% endif %}" href="?status=expired">Expired</a>
+            <a class="filter-chip {% if status_filter == 'pending' %}active{% endif %}" href="?status=pending">Pending</a>
+          </div>
+        </div>
+
+        <div class="panel">
+          <div class="table-responsive">
+            <table>
+              <thead>
+                <tr>
+                  <th>Customer</th>
+                  <th>Package Plan</th>
+                  <th>Status</th>
+                  <th>Start Date</th>
+                  <th>Expiry Date</th>
+                  <th>Data Remaining</th>
+                  <th>Auto Renew</th>
+                </tr>
+              </thead>
+              <tbody>
+                {% for sub in subscriptions_list %}
+                  <tr>
+                    <td><strong>{{ sub.customer.get_full_name|default:sub.customer.username }}</strong></td>
+                    <td>{{ sub.package.name }}</td>
+                    <td>
+                      {% if sub.status == 'active' %}
+                        <span class="badge badge-success">Active</span>
+                      {% elif sub.status == 'expired' %}
+                        <span class="badge badge-danger">Expired</span>
+                      {% else %}
+                        <span class="badge badge-warning">{{ sub.status|title }}</span>
+                      {% endif %}
+                    </td>
+                    <td style="color:var(--muted);">{{ sub.start_date|date:"M d, Y H:i" }}</td>
+                    <td style="color:var(--muted);">{{ sub.expiry_date|date:"M d, Y H:i"|default:"Never" }}</td>
+                    <td>{{ sub.data_remaining }} GB</td>
+                    <td>{% if sub.auto_renew %}Yes{% else %}No{% endif %}</td>
+                  </tr>
+                {% empty %}
+                  <tr>
+                    <td colspan="7" class="table-empty">No subscriptions found.</td>
+                  </tr>
+                {% endfor %}
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+      <!-- ================= SECTION: PAYMENTS ================= -->
+      {% elif active_section == 'payments' %}
+        <div class="action-bar">
+          <form class="search-form" method="get">
+            <input class="search-input" name="q" value="{{ q }}" placeholder="Search receipt number, username, phone…">
+            <button class="btn btn-primary" type="submit">Search</button>
+            {% if q %}
+              <a class="btn btn-outline" href="{% url 'admin-dashboard-payments' %}">Clear</a>
+            {% endif %}
+          </form>
+
+          <div class="filter-group">
+            <a class="filter-chip {% if not status_filter %}active{% endif %}" href="{% url 'admin-dashboard-payments' %}">All</a>
+            <a class="filter-chip {% if status_filter == 'successful' %}active{% endif %}" href="?status=successful">Successful</a>
+            <a class="filter-chip {% if status_filter == 'pending' %}active{% endif %}" href="?status=pending">Pending</a>
+            <a class="filter-chip {% if status_filter == 'failed' %}active{% endif %}" href="?status=failed">Failed</a>
+          </div>
+        </div>
+
+        <div class="panel">
+          <div class="table-responsive">
+            <table>
+              <thead>
+                <tr>
+                  <th>Receipt #</th>
+                  <th>Customer</th>
+                  <th>Package</th>
+                  <th>Amount</th>
+                  <th>Phone Number</th>
+                  <th>Method</th>
+                  <th>Status</th>
+                  <th>Date</th>
+                </tr>
+              </thead>
+              <tbody>
+                {% for payment in payments_list %}
+                  <tr>
+                    <td><span class="code-cell">{{ payment.receipt_number|default:"PENDING" }}</span></td>
+                    <td><strong>{{ payment.customer.get_full_name|default:payment.customer.username }}</strong></td>
+                    <td>{{ payment.package.name|default:"—" }}</td>
+                    <td><strong>KES {{ payment.amount }}</strong></td>
+                    <td>{{ payment.phone_number|default:"—" }}</td>
+                    <td>{{ payment.payment_method }}</td>
+                    <td>
+                      {% if payment.status == 'successful' %}
+                        <span class="badge badge-success">Successful</span>
+                      {% elif payment.status == 'pending' %}
+                        <span class="badge badge-warning">Pending</span>
+                      {% else %}
+                        <span class="badge badge-danger">{{ payment.status|title }}</span>
+                      {% endif %}
+                    </td>
+                    <td style="color:var(--muted);">{{ payment.created_at|date:"M d, Y H:i" }}</td>
+                  </tr>
+                {% empty %}
+                  <tr>
+                    <td colspan="8" class="table-empty">No payments recorded.</td>
+                  </tr>
+                {% endfor %}
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+      <!-- ================= SECTION: VOUCHERS ================= -->
+      {% elif active_section == 'vouchers' %}
+        <div class="action-bar">
+          <form class="search-form" method="get">
+            <input class="search-input" name="q" value="{{ q }}" placeholder="Search voucher code or package…">
+            <button class="btn btn-primary" type="submit">Search</button>
+            {% if q %}
+              <a class="btn btn-outline" href="{% url 'admin-dashboard-vouchers' %}">Clear</a>
+            {% endif %}
+          </form>
+
+          <div class="filter-group">
+            <a class="filter-chip {% if not status_filter %}active{% endif %}" href="{% url 'admin-dashboard-vouchers' %}">All</a>
+            <a class="filter-chip {% if status_filter == 'unused' %}active{% endif %}" href="?status=unused">Unused</a>
+            <a class="filter-chip {% if status_filter == 'active' %}active{% endif %}" href="?status=active">Active</a>
+            <a class="filter-chip {% if status_filter == 'used' %}active{% endif %}" href="?status=used">Used</a>
+            <button class="btn btn-teal" onclick="openModal('modal-voucher')">+ Generate Vouchers</button>
+          </div>
+        </div>
+
+        <div class="panel">
+          <div class="table-responsive">
+            <table>
+              <thead>
+                <tr>
+                  <th>Voucher Code</th>
+                  <th>Package Plan</th>
+                  <th>Duration</th>
+                  <th>Data Quota</th>
+                  <th>Status</th>
+                  <th>Created At</th>
+                  <th>Action</th>
+                </tr>
+              </thead>
+              <tbody>
+                {% for voucher in vouchers_list %}
+                  <tr>
+                    <td><span class="code-cell" id="vc-{{ voucher.id }}">{{ voucher.code }}</span></td>
+                    <td>{{ voucher.package.name }}</td>
+                    <td>{{ voucher.duration_hours }} hrs</td>
+                    <td>{{ voucher.data_allowance_gb }} GB</td>
+                    <td>
+                      {% if voucher.status == 'unused' %}
+                        <span class="badge badge-info">Unused</span>
+                      {% elif voucher.status == 'active' %}
+                        <span class="badge badge-success">Active</span>
+                      {% elif voucher.status == 'used' %}
+                        <span class="badge badge-neutral">Used</span>
+                      {% else %}
+                        <span class="badge badge-danger">{{ voucher.status|title }}</span>
+                      {% endif %}
+                    </td>
+                    <td style="color:var(--muted);">{{ voucher.created_at|date:"M d, Y H:i" }}</td>
+                    <td>
+                      <button class="btn btn-outline btn-sm" onclick="copyVoucher('{{ voucher.code }}')">Copy</button>
+                    </td>
+                  </tr>
+                {% empty %}
+                  <tr>
+                    <td colspan="7" class="table-empty">No vouchers generated yet. Click "+ Generate Vouchers" to generate pre-paid codes.</td>
+                  </tr>
+                {% endfor %}
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+      <!-- ================= SECTION: ROUTERS ================= -->
+      {% elif active_section == 'routers' %}
+        <div class="action-bar">
+          <div style="font-size:15px;color:var(--muted);">Total Routers Configured: <strong>{{ routers_list|length }}</strong></div>
+          <button class="btn btn-teal" onclick="openModal('modal-router')">+ Add Router</button>
+        </div>
+
+        <div class="grid-cards">
+          {% for router in routers_list %}
+            <div class="router-card">
+              <div class="router-card-top">
+                <h3 style="margin:0;font-size:17px;color:var(--navy);">{{ router.name }}</h3>
+                <span class="badge {% if router.connection_status == 'connected' %}badge-success{% else %}badge-danger{% endif %}">
+                  <span class="status-dot {% if router.connection_status != 'connected' %}disconnected{% endif %}"></span>
+                  {{ router.connection_status|title }}
+                </span>
+              </div>
+              <p style="margin:0 0 16px;color:var(--muted);font-size:13px;">
+                IP Address: <strong>{{ router.ip_address }}:{{ router.api_port }}</strong>
+              </p>
+              <div style="font-size:12px;color:var(--muted);margin-bottom:18px;">
+                Last check: {{ router.last_checked_at|date:"M d, Y H:i"|default:"Never checked" }}
+              </div>
+              <form method="post">
+                {% csrf_token %}
+                <input type="hidden" name="action" value="test_router">
+                <input type="hidden" name="router_id" value="{{ router.id }}">
+                <button class="btn btn-primary btn-sm" type="submit" style="width:100%;">Test Connection</button>
+              </form>
+            </div>
+          {% empty %}
+            <div class="panel" style="grid-column:1 / -1;">
+              <div class="table-empty">No routers configured. Click "+ Add Router" to configure your first MikroTik router.</div>
+            </div>
+          {% endfor %}
+        </div>
+
+      <!-- ================= SECTION: SETTINGS ================= -->
+      {% elif active_section == 'settings' %}
+        <div class="grid-2">
+          <div class="panel">
+            <div class="panel-header">
+              <h2 class="panel-title">System & Network Parameters</h2>
+            </div>
+            <div class="panel-body">
+              <div style="display:grid;gap:14px;">
+                <div style="display:flex;justify-content:space-between;border-bottom:1px solid #edf3f2;padding-bottom:8px;">
+                  <span style="color:var(--muted);">Environment Mode</span>
+                  <strong>{% if settings_info.debug %}Development (DEBUG=True){% else %}Production{% endif %}</strong>
+                </div>
+                <div style="display:flex;justify-content:space-between;border-bottom:1px solid #edf3f2;padding-bottom:8px;">
+                  <span style="color:var(--muted);">Server Timezone</span>
+                  <strong>{{ settings_info.time_zone }}</strong>
+                </div>
+                <div style="display:flex;justify-content:space-between;border-bottom:1px solid #edf3f2;padding-bottom:8px;">
+                  <span style="color:var(--muted);">M-Pesa Shortcode</span>
+                  <span class="code-cell">{{ settings_info.mpesa_shortcode }}</span>
+                </div>
+                <div style="display:flex;justify-content:space-between;border-bottom:1px solid #edf3f2;padding-bottom:8px;">
+                  <span style="color:var(--muted);">M-Pesa Gateway URL</span>
+                  <span class="code-cell" style="max-width:240px;overflow:hidden;text-overflow:ellipsis;">{{ settings_info.mpesa_base_url }}</span>
+                </div>
+                <div style="display:flex;justify-content:space-between;border-bottom:1px solid #edf3f2;padding-bottom:8px;">
+                  <span style="color:var(--muted);">Allowed Hosts</span>
+                  <span style="font-size:12px;color:var(--navy);">{{ settings_info.allowed_hosts|join:", " }}</span>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="panel">
+            <div class="panel-header">
+              <h2 class="panel-title">Administrator Profile</h2>
+            </div>
+            <div class="panel-body">
+              <div style="display:flex;align-items:center;gap:16px;margin-bottom:18px;">
+                <div class="avatar" style="width:52px;height:52px;font-size:18px;">
+                  {{ user.username|slice:":2"|upper }}
+                </div>
+                <div>
+                  <h3 style="margin:0;font-size:17px;color:var(--navy);">{{ user.get_full_name|default:user.username }}</h3>
+                  <span class="badge badge-info">{{ user.role|default:"Administrator" }}</span>
+                </div>
+              </div>
+
+              <div style="display:grid;gap:12px;font-size:13px;">
+                <div>Username: <strong>{{ user.username }}</strong></div>
+                <div>Email: <strong>{{ user.email|default:"Not set" }}</strong></div>
+                <div>Superuser Privileges: <strong>{% if user.is_superuser %}Yes{% else %}No{% endif %}</strong></div>
+                <div>Staff Status: <strong>{% if user.is_staff %}Yes{% else %}No{% endif %}</strong></div>
+              </div>
+
+              <div style="margin-top:24px;">
+                <a class="btn btn-outline" href="{% url 'admin-dashboard-logout' %}" style="color:var(--danger);">Sign Out of Dashboard</a>
+              </div>
+            </div>
+          </div>
+        </div>
+      {% endif %}
+    </main>
+  </div>
+
+  <!-- ================= MODALS ================= -->
+
+  <!-- Modal: Add Customer -->
+  <div class="modal-backdrop" id="modal-customer" onclick="if(event.target===this)closeModal('modal-customer')">
+    <div class="modal-box">
+      <button class="modal-close" onclick="closeModal('modal-customer')">✕</button>
+      <h3 class="modal-title">Add New Customer</h3>
+      <p class="modal-desc">Create a subscriber profile for WiFi network access.</p>
+      <form method="post">
+        {% csrf_token %}
+        <input type="hidden" name="action" value="add_customer">
+        <div class="form-row">
+          <div class="form-group">
+            <label>Username *</label>
+            <input class="form-control" name="username" required placeholder="e.g. john_doe">
+          </div>
+          <div class="form-group">
+            <label>Initial Password</label>
+            <input class="form-control" name="password" type="password" placeholder="Defaults to Customer123!">
+          </div>
+        </div>
+        <div class="form-row">
+          <div class="form-group">
+            <label>First Name</label>
+            <input class="form-control" name="first_name" placeholder="John">
+          </div>
+          <div class="form-group">
+            <label>Last Name</label>
+            <input class="form-control" name="last_name" placeholder="Doe">
+          </div>
+        </div>
+        <div class="form-group">
+          <label>M-Pesa Phone Number</label>
+          <input class="form-control" name="phone_number" placeholder="07XXXXXXXX">
+        </div>
+        <div class="form-group">
+          <label>Email Address</label>
+          <input class="form-control" name="email" type="email" placeholder="john@example.com">
+        </div>
+        <button class="btn btn-primary" type="submit" style="width:100%;margin-top:10px;">Create Customer Account</button>
+      </form>
+    </div>
+  </div>
+
+  <!-- Modal: Create Package -->
+  <div class="modal-backdrop" id="modal-package" onclick="if(event.target===this)closeModal('modal-package')">
+    <div class="modal-box">
+      <button class="modal-close" onclick="closeModal('modal-package')">✕</button>
+      <h3 class="modal-title">Create Internet Package</h3>
+      <p class="modal-desc">Define a new subscription or hotspot plan.</p>
+      <form method="post">
+        {% csrf_token %}
+        <input type="hidden" name="action" value="create_package">
+        <div class="form-row">
+          <div class="form-group">
+            <label>Package Name *</label>
+            <input class="form-control" name="name" required placeholder="e.g. Daily Unlimited">
+          </div>
+          <div class="form-group">
+            <label>Price (KES) *</label>
+            <input class="form-control" name="price" type="number" step="0.01" required placeholder="50.00">
+          </div>
+        </div>
+        <div class="form-row">
+          <div class="form-group">
+            <label>Duration (Hours) *</label>
+            <input class="form-control" name="duration_hours" type="number" value="24" required>
+          </div>
+          <div class="form-group">
+            <label>Data Limit (GB)</label>
+            <input class="form-control" name="data_allowance_gb" type="number" step="0.1" value="5">
+          </div>
+        </div>
+        <div class="form-row">
+          <div class="form-group">
+            <label>Download Speed (Mbps)</label>
+            <input class="form-control" name="download_speed_mbps" type="number" step="0.1" value="10">
+          </div>
+          <div class="form-group">
+            <label>Upload Speed (Mbps)</label>
+            <input class="form-control" name="upload_speed_mbps" type="number" step="0.1" value="5">
+          </div>
+        </div>
+        <div class="form-group">
+          <label>Allowed Devices</label>
+          <input class="form-control" name="devices_allowed" type="number" value="1">
+        </div>
+        <div class="form-group">
+          <label>Description</label>
+          <input class="form-control" name="description" placeholder="Short summary shown to customers">
+        </div>
+        <button class="btn btn-teal" type="submit" style="width:100%;margin-top:10px;">Save & Publish Package</button>
+      </form>
+    </div>
+  </div>
+
+  <!-- Modal: Generate Vouchers -->
+  <div class="modal-backdrop" id="modal-voucher" onclick="if(event.target===this)closeModal('modal-voucher')">
+    <div class="modal-box">
+      <button class="modal-close" onclick="closeModal('modal-voucher')">✕</button>
+      <h3 class="modal-title">Generate Hotspot Vouchers</h3>
+      <p class="modal-desc">Batch create unique pre-paid voucher codes.</p>
+      <form method="post">
+        {% csrf_token %}
+        <input type="hidden" name="action" value="generate_vouchers">
+        <div class="form-group">
+          <label>Select Internet Package *</label>
+          <select class="form-control" name="package_id" required>
+            {% for pkg in all_packages %}
+              <option value="{{ pkg.id }}">{{ pkg.name }} — KES {{ pkg.price }} ({{ pkg.duration_hours }} hrs)</option>
+            {% endfor %}
+          </select>
+        </div>
+        <div class="form-group">
+          <label>Quantity to Generate</label>
+          <select class="form-control" name="count">
+            <option value="5">5 Vouchers</option>
+            <option value="10" selected>10 Vouchers</option>
+            <option value="20">20 Vouchers</option>
+            <option value="50">50 Vouchers</option>
+          </select>
+        </div>
+        <button class="btn btn-teal" type="submit" style="width:100%;margin-top:10px;">Generate Voucher Batch</button>
+      </form>
+    </div>
+  </div>
+
+  <!-- Modal: Add Router -->
+  <div class="modal-backdrop" id="modal-router" onclick="if(event.target===this)closeModal('modal-router')">
+    <div class="modal-box">
+      <button class="modal-close" onclick="closeModal('modal-router')">✕</button>
+      <h3 class="modal-title">Register MikroTik Router</h3>
+      <p class="modal-desc">Connect a new MikroTik RouterOS device for hotspot management.</p>
+      <form method="post">
+        {% csrf_token %}
+        <input type="hidden" name="action" value="add_router">
+        <div class="form-group">
+          <label>Router Friendly Name *</label>
+          <input class="form-control" name="name" required placeholder="e.g. Main Gateway Router">
+        </div>
+        <div class="form-row">
+          <div class="form-group">
+            <label>IP Address *</label>
+            <input class="form-control" name="ip_address" required placeholder="192.168.88.1">
+          </div>
+          <div class="form-group">
+            <label>API Port</label>
+            <input class="form-control" name="api_port" type="number" value="8728">
+          </div>
+        </div>
+        <div class="form-row">
+          <div class="form-group">
+            <label>Router Username</label>
+            <input class="form-control" name="username" value="admin">
+          </div>
+          <div class="form-group">
+            <label>Router Password</label>
+            <input class="form-control" name="password" type="password" placeholder="Router password">
+          </div>
+        </div>
+        <button class="btn btn-primary" type="submit" style="width:100%;margin-top:10px;">Register & Save Router</button>
+      </form>
+    </div>
+  </div>
+
+  <script>
+    function openModal(id) {
+      const modal = document.getElementById(id);
+      if (modal) modal.classList.add('active');
+    }
+    function closeModal(id) {
+      const modal = document.getElementById(id);
+      if (modal) modal.classList.remove('active');
+    }
+    function copyVoucher(code) {
+      navigator.clipboard.writeText(code).then(() => {
+        alert('Copied voucher code: ' + code);
+      }).catch(() => {
+        prompt('Copy voucher code:', code);
+      });
+    }
+  </script>
+</body>
+</html>

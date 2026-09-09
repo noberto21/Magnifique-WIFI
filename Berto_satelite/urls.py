@@ -18,11 +18,12 @@ from django.contrib import admin
 from django.urls import include, path
 
 from wifi_billing import views
-from wifi_billing.views import admin_login, customer_page, dashboard_page
+from wifi_billing.views import admin_login, admin_logout, customer_page, dashboard_page
 
 urlpatterns = [
     path('', customer_page, name='home'),
     path('admin-dashboard/login/', admin_login, name='admin-dashboard-login'),
+    path('admin-dashboard/logout/', admin_logout, name='admin-dashboard-logout'),
     path('admin-dashboard/', dashboard_page, name='admin-dashboard'),
     path('admin-dashboard/customers/', views.dashboard_section, {'section': 'customers'}, name='admin-dashboard-customers'),
     path('admin-dashboard/packages/', views.dashboard_section, {'section': 'packages'}, name='admin-dashboard-packages'),

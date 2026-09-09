@@ -30,6 +30,15 @@ class User(AbstractUser):
     def __str__(self):
         return self.get_full_name() or self.username
 
+    @property
+    def is_admin_user(self):
+        return self.is_staff or self.is_superuser or self.role in (self.ROLE_SUPER_ADMIN, self.ROLE_ADMIN)
+
+    def save(self, *args, **kwargs):
+        if self.is_superuser or self.role in (self.ROLE_SUPER_ADMIN, self.ROLE_ADMIN):
+            self.is_staff = True
+        super().save(*args, **kwargs)
+
 
 class Package(models.Model):
     STATUS_ACTIVE = 'active'

@@ -1,16 +1,33 @@
 import json
+import secrets
+import string
+from functools import wraps
 
-from django.contrib.auth import authenticate, login
-from django.contrib.admin.views.decorators import staff_member_required
+from django.conf import settings
+from django.contrib import messages
+from django.contrib.auth import authenticate, login, logout
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.views import LoginView
-from django.db.models import Count, Sum
+from django.db.models import Count, Q, Sum
 from django.http import HttpResponseBadRequest, JsonResponse
-from django.shortcuts import render
+from django.shortcuts import redirect, render
+from django.utils import timezone
 from django.views.decorators.http import require_http_methods
 
 from .models import Package, Payment, Router, Subscription, User, Voucher
 from .services import MpesaService, RouterService
+
+
+def admin_required(view_func):
+    """Ensure user is logged in and is staff, superuser, or has an admin role."""
+    @wraps(view_func)
+    def _wrapped_view(request, *args, **kwargs):
+        if not request.user.is_authenticated:
+            return redirect(f'/admin-dashboard/login/?next={request.path}')
+        if not (request.user.is_staff or request.user.is_superuser or getattr(request.user, 'role', None) in (User.ROLE_SUPER_ADMIN, User.ROLE_ADMIN)):
+            return redirect('/admin-dashboard/login/')
+        return view_func(request, *args, **kwargs)
+    return _wrapped_view
 
 
 def _read_json(request):
@@ -81,18 +98,258 @@ def admin_login(request):
     )(request)
 
 
-@staff_member_required(login_url='/admin-dashboard/login/')
+def admin_logout(request):
+    logout(request)
+    return redirect('/admin-dashboard/login/')
+
+
+def _get_dashboard_context(request, section='overview'):
+    customers_qs = User.objects.filter(role=User.ROLE_CUSTOMER)
+    total_customers = customers_qs.count()
+    active_customers = customers_qs.filter(subscription_status='active').count()
+
+    subs_qs = Subscription.objects.select_related('customer', 'package')
+    active_subscriptions = subs_qs.filter(status=Subscription.STATUS_ACTIVE).count()
+
+    payments_qs = Payment.objects.select_related('customer', 'package')
+    today_start = timezone.now().replace(hour=0, minute=0, second=0, microsecond=0)
+    today_revenue = payments_qs.filter(status=Payment.STATUS_SUCCESSFUL, created_at__gte=today_start).aggregate(val=Sum('amount'))['val'] or 0
+    all_time_revenue = payments_qs.filter(status=Payment.STATUS_SUCCESSFUL).aggregate(val=Sum('amount'))['val'] or 0
+
+    vouchers_qs = Voucher.objects.select_related('package')
+    total_vouchers = vouchers_qs.count()
+    unused_vouchers = vouchers_qs.filter(status=Voucher.STATUS_UNUSED).count()
+
+    routers_qs = Router.objects.all()
+    packages_qs = Package.objects.all()
+
+    q = (request.GET.get('q') or '').strip()
+    status_filter = (request.GET.get('status') or '').strip()
+
+    context = {
+        'active_section': section,
+        'user': request.user,
+        'metrics': {
+            'total_customers': total_customers,
+            'active_customers': active_customers,
+            'active_subscriptions': active_subscriptions,
+            'today_revenue': today_revenue,
+            'all_time_revenue': all_time_revenue,
+            'total_vouchers': total_vouchers,
+            'unused_vouchers': unused_vouchers,
+            'total_routers': routers_qs.count(),
+            'online_routers': routers_qs.filter(connection_status='connected').count(),
+        },
+        'q': q,
+        'status_filter': status_filter,
+        'all_packages': packages_qs.filter(status=Package.STATUS_ACTIVE),
+    }
+
+    if section == 'overview':
+        context['recent_payments'] = payments_qs.order_by('-created_at')[:6]
+        context['recent_customers'] = customers_qs.order_by('-date_joined')[:5]
+        context['package_popularity'] = packages_qs.annotate(sold=Count('subscriptions')).order_by('-sold')[:5]
+        context['routers_list'] = routers_qs[:4]
+    elif section == 'customers':
+        c_list = customers_qs
+        if q:
+            c_list = c_list.filter(
+                Q(username__icontains=q) |
+                Q(first_name__icontains=q) |
+                Q(last_name__icontains=q) |
+                Q(phone_number__icontains=q) |
+                Q(email__icontains=q)
+            )
+        if status_filter:
+            c_list = c_list.filter(subscription_status=status_filter)
+        context['customers_list'] = c_list.order_by('-date_joined')
+    elif section == 'packages':
+        context['packages_list'] = packages_qs.order_by('-created_at')
+    elif section == 'subscriptions':
+        s_list = subs_qs
+        if q:
+            s_list = s_list.filter(Q(customer__username__icontains=q) | Q(package__name__icontains=q))
+        if status_filter:
+            s_list = s_list.filter(status=status_filter)
+        context['subscriptions_list'] = s_list.order_by('-start_date')
+    elif section == 'payments':
+        p_list = payments_qs
+        if q:
+            p_list = p_list.filter(
+                Q(receipt_number__icontains=q) |
+                Q(customer__username__icontains=q) |
+                Q(phone_number__icontains=q)
+            )
+        if status_filter:
+            p_list = p_list.filter(status=status_filter)
+        context['payments_list'] = p_list.order_by('-created_at')
+    elif section == 'vouchers':
+        v_list = vouchers_qs
+        if q:
+            v_list = v_list.filter(Q(code__icontains=q) | Q(package__name__icontains=q))
+        if status_filter:
+            v_list = v_list.filter(status=status_filter)
+        context['vouchers_list'] = v_list.order_by('-created_at')
+    elif section == 'routers':
+        context['routers_list'] = routers_qs.order_by('name')
+    elif section == 'settings':
+        context['settings_info'] = {
+            'debug': settings.DEBUG,
+            'allowed_hosts': settings.ALLOWED_HOSTS,
+            'time_zone': settings.TIME_ZONE,
+            'mpesa_shortcode': getattr(settings, 'MPESA_SHORT_CODE', '174379'),
+            'mpesa_base_url': getattr(settings, 'MPESA_BASE_URL', 'https://sandbox.safaricom.co.ke'),
+            'user_count': User.objects.count(),
+            'total_payments': Payment.objects.count(),
+            'total_subscriptions': Subscription.objects.count(),
+        }
+
+    return context
+
+
+@admin_required
+def dashboard_section(request, section='overview'):
+    if request.method == 'POST':
+        action = request.POST.get('action', '')
+
+        # Action: Add Customer
+        if action == 'add_customer':
+            username = request.POST.get('username', '').strip()
+            first_name = request.POST.get('first_name', '').strip()
+            last_name = request.POST.get('last_name', '').strip()
+            email = request.POST.get('email', '').strip()
+            phone_number = request.POST.get('phone_number', '').strip()
+            password = request.POST.get('password', '').strip() or 'Customer123!'
+
+            if not username:
+                messages.error(request, 'Username is required.')
+            elif User.objects.filter(username=username).exists():
+                messages.error(request, f'Username "{username}" is already taken.')
+            else:
+                User.objects.create_user(
+                    username=username,
+                    email=email,
+                    password=password,
+                    first_name=first_name,
+                    last_name=last_name,
+                    phone_number=phone_number,
+                    role=User.ROLE_CUSTOMER,
+                    subscription_status='new',
+                )
+                messages.success(request, f'Customer "{username}" was added successfully!')
+            return redirect(request.path)
+
+        # Action: Create Package
+        elif action == 'create_package':
+            name = request.POST.get('name', '').strip()
+            price = request.POST.get('price', '0').strip()
+            duration_hours = int(request.POST.get('duration_hours') or 24)
+            speed_limit = float(request.POST.get('speed_limit_mbps') or 5)
+            data_allowance = float(request.POST.get('data_allowance_gb') or 1)
+            upload_speed = float(request.POST.get('upload_speed_mbps') or 2)
+            download_speed = float(request.POST.get('download_speed_mbps') or 5)
+            devices = int(request.POST.get('devices_allowed') or 1)
+            description = request.POST.get('description', '').strip()
+            status = request.POST.get('status') or Package.STATUS_ACTIVE
+
+            if not name:
+                messages.error(request, 'Package name is required.')
+            else:
+                Package.objects.create(
+                    name=name,
+                    price=price,
+                    duration_hours=duration_hours,
+                    speed_limit_mbps=speed_limit,
+                    data_allowance_gb=data_allowance,
+                    upload_speed_mbps=upload_speed,
+                    download_speed_mbps=download_speed,
+                    devices_allowed=devices,
+                    description=description,
+                    status=status,
+                )
+                messages.success(request, f'Package "{name}" created successfully!')
+            return redirect(request.path)
+
+        # Action: Toggle Package Status
+        elif action == 'toggle_package':
+            pkg_id = request.POST.get('package_id')
+            pkg = Package.objects.filter(id=pkg_id).first()
+            if pkg:
+                pkg.status = Package.STATUS_INACTIVE if pkg.status == Package.STATUS_ACTIVE else Package.STATUS_ACTIVE
+                pkg.save(update_fields=['status'])
+                messages.success(request, f'Package "{pkg.name}" status updated to {pkg.status}.')
+            return redirect(request.path)
+
+        # Action: Generate Vouchers
+        elif action == 'generate_vouchers':
+            pkg_id = request.POST.get('package_id')
+            pkg = Package.objects.filter(id=pkg_id).first()
+            try:
+                count = max(1, min(int(request.POST.get('count') or 5), 50))
+            except ValueError:
+                count = 5
+
+            if not pkg:
+                messages.error(request, 'Please select a valid package for voucher generation.')
+            else:
+                chars = string.ascii_uppercase + string.digits
+                generated = []
+                for _ in range(count):
+                    code = f'MV-{"".join(secrets.choice(chars) for _ in range(4))}-{"".join(secrets.choice(chars) for _ in range(4))}'
+                    while Voucher.objects.filter(code=code).exists():
+                        code = f'MV-{"".join(secrets.choice(chars) for _ in range(4))}-{"".join(secrets.choice(chars) for _ in range(4))}'
+                    Voucher.objects.create(
+                        code=code,
+                        package=pkg,
+                        duration_hours=pkg.duration_hours,
+                        data_allowance_gb=pkg.data_allowance_gb,
+                        status=Voucher.STATUS_UNUSED,
+                    )
+                    generated.append(code)
+                messages.success(request, f'Successfully generated {len(generated)} vouchers for {pkg.name}.')
+            return redirect(request.path)
+
+        # Action: Add Router
+        elif action == 'add_router':
+            name = request.POST.get('name', '').strip()
+            ip_address = request.POST.get('ip_address', '').strip()
+            api_port = int(request.POST.get('api_port') or 8728)
+            username = request.POST.get('username', '').strip() or 'admin'
+            password = request.POST.get('password', '').strip() or ''
+
+            if not name or not ip_address:
+                messages.error(request, 'Router name and IP address are required.')
+            else:
+                Router.objects.create(
+                    name=name,
+                    ip_address=ip_address,
+                    api_port=api_port,
+                    username=username,
+                    password=password,
+                )
+                messages.success(request, f'Router "{name}" added successfully!')
+            return redirect(request.path)
+
+        # Action: Test Router Connection
+        elif action == 'test_router':
+            router_id = request.POST.get('router_id')
+            router = Router.objects.filter(id=router_id).first()
+            if router:
+                service = RouterService(router)
+                res = service.connect()
+                if res.get('ok'):
+                    messages.success(request, f'Connected to router "{router.name}" successfully!')
+                else:
+                    messages.error(request, f'Connection test to "{router.name}" failed.')
+            return redirect(request.path)
+
+    context = _get_dashboard_context(request, section=section)
+    return render(request, 'wifi_billing/dashboard.html', context)
+
+
+@admin_required
 def dashboard_page(request):
-    return render(request, 'wifi_billing/dashboard.html')
-
-
-@staff_member_required(login_url='/admin-dashboard/login/')
-def dashboard_section(request, section):
-    return render(
-        request,
-        'wifi_billing/dashboard.html',
-        {'active_section': section},
-    )
+    return dashboard_section(request, section='overview')
 
 
 def customer_page(request):

@@ -116,3 +116,109 @@ class WifiBillingApiTests(TestCase):
             response = self.client.get(f'/admin-dashboard/{section}/')
             self.assertEqual(response.status_code, 200)
             self.assertContains(response, f'/admin-dashboard/{section}/')
+
+    def test_admin_logout_redirects_to_login(self):
+        User.objects.create_user(
+            username='staff_logout',
+            password='securepass123',
+            is_staff=True,
+        )
+        self.client.login(username='staff_logout', password='securepass123')
+        response = self.client.get('/admin-dashboard/logout/')
+        self.assertEqual(response.status_code, 302)
+        self.assertEqual(response.url, '/admin-dashboard/login/')
+        # After logout, accessing dashboard redirects to login
+        dash_response = self.client.get('/admin-dashboard/')
+        self.assertEqual(dash_response.status_code, 302)
+        self.assertIn('/admin-dashboard/login/', dash_response.url)
+
+    def test_super_admin_role_can_access_dashboard(self):
+        user = User.objects.create_user(
+            username='super_admin_user',
+            password='securepass123',
+            role=User.ROLE_SUPER_ADMIN,
+        )
+        self.assertTrue(user.is_staff)
+        self.client.login(username='super_admin_user', password='securepass123')
+        response = self.client.get('/admin-dashboard/')
+        self.assertEqual(response.status_code, 200)
+
+    def test_admin_dashboard_post_actions(self):
+        User.objects.create_user(
+            username='admin_worker',
+            password='securepass123',
+            is_staff=True,
+        )
+        self.client.login(username='admin_worker', password='securepass123')
+
+        # 1. Add Customer action
+        cust_resp = self.client.post('/admin-dashboard/customers/', {
+            'action': 'add_customer',
+            'username': 'new_customer_1',
+            'password': 'Password123!',
+            'first_name': 'New',
+            'last_name': 'Subscriber',
+            'phone_number': '0722000000',
+            'email': 'sub@example.com',
+        }, follow=True)
+        self.assertEqual(cust_resp.status_code, 200)
+        self.assertTrue(User.objects.filter(username='new_customer_1').exists())
+
+        # 2. Create Package action
+        pkg_resp = self.client.post('/admin-dashboard/packages/', {
+            'action': 'create_package',
+            'name': 'Monthly Pro',
+            'price': '1500.00',
+            'duration_hours': '720',
+            'speed_limit_mbps': '20',
+            'data_allowance_gb': '50',
+            'upload_speed_mbps': '10',
+            'download_speed_mbps': '20',
+            'devices_allowed': '4',
+            'description': 'High speed monthly internet',
+        }, follow=True)
+        self.assertEqual(pkg_resp.status_code, 200)
+        created_pkg = Package.objects.filter(name='Monthly Pro').first()
+        self.assertIsNotNone(created_pkg)
+
+        # 3. Toggle Package action
+        toggle_resp = self.client.post('/admin-dashboard/packages/', {
+            'action': 'toggle_package',
+            'package_id': created_pkg.id,
+        }, follow=True)
+        self.assertEqual(toggle_resp.status_code, 200)
+        created_pkg.refresh_from_db()
+        self.assertEqual(created_pkg.status, Package.STATUS_INACTIVE)
+
+        # 4. Generate Vouchers action
+        vouch_resp = self.client.post('/admin-dashboard/vouchers/', {
+            'action': 'generate_vouchers',
+            'package_id': self.package.id,
+            'count': '5',
+        }, follow=True)
+        self.assertEqual(vouch_resp.status_code, 200)
+        from .models import Voucher
+        self.assertEqual(Voucher.objects.filter(package=self.package).count(), 5)
+
+        # 5. Add Router action
+        router_resp = self.client.post('/admin-dashboard/routers/', {
+            'action': 'add_router',
+            'name': 'Test Gateway',
+            'ip_address': '192.168.10.1',
+            'api_port': '8728',
+            'username': 'admin',
+            'password': 'password',
+        }, follow=True)
+        self.assertEqual(router_resp.status_code, 200)
+        from .models import Router
+        router = Router.objects.filter(name='Test Gateway').first()
+        self.assertIsNotNone(router)
+
+        # 6. Test Router action
+        test_r_resp = self.client.post('/admin-dashboard/routers/', {
+            'action': 'test_router',
+            'router_id': router.id,
+        }, follow=True)
+        self.assertEqual(test_r_resp.status_code, 200)
+        router.refresh_from_db()
+        self.assertEqual(router.connection_status, 'connected')
